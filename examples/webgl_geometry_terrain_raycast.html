@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - geometry - terrain</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+		<style>
+			body {
+				background-color: #bfd1e5;
+				color: #61443e;
+			}
+			a {
+				color: #a06851;
+			}
+			.touch-none {
+        	touch-action: none;
+    		}
+    		canvas {
+    		display: block; 
+			}
+		</style>
+	</head>
+	<body>
+
+		
+		<script src="jsm/libs/ammo.wasm.js"></script>
+
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js",
+					"three/addons/": "./jsm/"
+				}
+			}
+		</script>
+
+		    <script type="module">
+        	import * as THREE from 'three';
+        	import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        	import { Gyroscope } from 'three/addons/misc/Gyroscope.js';
+            //variable declaration section
+            //variable declaration section
+            let physicsWorld, scene, camera, renderer, rigidBodies = [], tmpTrans = null , clock
+            let ballObject = null, moveDirection = { left: 0, right: 0, forward: 0, back: 0 }
+            let ball;
+            let kObject = null, kMoveDirection = { left: 0, right: 0, forward: 0, back: 0 }, tmpPos = new THREE.Vector3(), tmpQuat = new THREE.Quaternion();
+            let ammoTmpPos = null, ammoTmpQuat = null;
+
+            const STATE = { DISABLE_DEACTIVATION : 4 }
+
+            const FLAGS = { CF_KINEMATIC_OBJECT: 2 }
+
+            // Heightfield parameters
+			const terrainWidthExtents = 3000;
+			const terrainDepthExtents = 3000;
+			const terrainWidth = 512;
+			const terrainDepth = 512;
+			const terrainHalfWidth = terrainWidth / 2;
+			const terrainHalfDepth = terrainDepth / 2;
+			const terrainMaxHeight = 150;
+			const terrainMinHeight = 0;
+
+			let heightData = null;
+			let ammoHeightData = null;
+			let terrainMesh;
+			let img;
+			let scale;
+			let gyro;
+			let ballHolder = new THREE.Object3D();;
+			let controls;
+			let loader;
+			let hover = new THREE.Object3D();
+
+			let sky;
+			let smoothX = Array(15).fill(0);
+			let smoothZ = Array(7).fill(0);
+			let smoothPY = Array(7).fill(0);
+
+			let mouse;
+			let moveZ=0.0;
+			let moveX=0.0;
+
+
+            //Ammojs Initialization
+            Ammo().then(start)
+
+
+            function preventBehavior(e) {
+    			e.preventDefault(); 
+			};
+
+
+
+            let touchHandler = function(event) {	
+  			let xm = 0, ym = 0;
+
+
+				if (event.touches && event.touches[0]) {
+    				xm = event.touches[0].clientX;
+    				ym = event.touches[0].clientY;
+				} else if (event.originalEvent && event.originalEvent.changedTouches[0]) {
+    				xm = event.originalEvent.changedTouches[0].clientX;
+    				ym = event.originalEvent.changedTouches[0].clientY;
+				} else if (event.clientX && event.clientY) {
+    				xm = event.clientX;
+    				ym = event.clientY;
+				}
+				moveX = 5*((xm / window.innerWidth)-0.5);
+				moveZ = 20*((ym / window.innerHeight)-0.5);
+				console.log(moveZ);
+				}
+
+			let touchEnd = function(event) {
+				moveX = 0;
+				moveZ = 0;
+			}
+
+
+            function start (){
+
+                tmpTrans = new Ammo.btTransform();
+                ammoTmpPos = new Ammo.btVector3();
+                ammoTmpQuat = new Ammo.btQuaternion();
+
+
+
+                camera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 10000 );
+                
+				camera.position.set( 0, 10, 30 );
+                ballHolder.add(camera);
+
+
+                console.log("test");
+
+                loader = new GLTFLoader().setPath( 'models/gltf/' );
+                loader.load( 'hover.glb', function ( gltf ) {
+					hover.add( gltf.scene );
+					ballHolder.add( hover );
+					//render();
+				} );
+
+               
+                setupPhysicsWorld();
+                
+
+                setupGraphics();
+                getHeightData();
+                createBall();
+
+                
+				
+
+                
+
+				scene.add(ballHolder);
+
+				//controls = new OrbitControls( camera, renderer.domElement );
+
+
+
+                setupEventHandlers();
+                
+
+                loader.load( 'sky.glb', function ( gltf ) {
+					gltf.scene.position.y = -300	;
+					sky = gltf.scene;
+					camera.add( gltf.scene );
+					//render();
+				} );
+				//scene.add( camera );
+                loader = new GLTFLoader().setPath( 'models/gltf/' );
+                loader.load( 'output.glb', function ( gltf ) {
+					scene.add( gltf.scene );
+					//render();
+				} );
+	            renderFrame();
+	            }
+
+                
+            function make_terrain() {
+	            const groundShape = createTerrainShape();
+	            const groundTransform = new Ammo.btTransform();
+				groundTransform.setIdentity();
+				// Shifts the terrain, since bullet re-centers it on its bounding box.
+				groundTransform.setOrigin( new Ammo.btVector3( 0, ( terrainMaxHeight + terrainMinHeight ) / 2, 0 ) );
+				const groundMass = 0;
+				const groundLocalInertia = new Ammo.btVector3( 0, 0, 0 );
+				const groundMotionState = new Ammo.btDefaultMotionState( groundTransform );
+				const groundBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass, groundMotionState, groundShape, groundLocalInertia ) );
+				physicsWorld.addRigidBody( groundBody );
+
+				const geometry = new THREE.PlaneGeometry( terrainWidthExtents, terrainDepthExtents, terrainWidth - 1, terrainDepth - 1 );
+					geometry.rotateX( - Math.PI / 2 );
+
+					const vertices = geometry.attributes.position.array;
+
+					for ( let i = 0, j = 0, l = vertices.length; i < l; i ++, j += 3 ) {
+
+						// j + 1 because it is the y component that we modify
+						vertices[ j + 1 ] = heightData[ i ];
+
+					}
+
+					geometry.computeVertexNormals();
+
+					const groundMaterial = new THREE.MeshPhongMaterial( { color: 0xC7C7C7 } );
+					terrainMesh = new THREE.Mesh( geometry, groundMaterial );
+					//terrainMesh.receiveShadow = true;
+					//terrainMesh.castShadow = true;
+					//scene.add( terrainMesh );
+
+				}
+
+			function getHeightData(scale) {
+     
+     			if (scale == undefined) scale=1;
+     			img = new Image();
+     			img.src = "./textures/map.png";
+        		var canvas = document.createElement( 'canvas' );
+        		canvas.width = terrainWidth;
+        		canvas.height = terrainDepth;
+        		var context = canvas.getContext( '2d' );
+        		var size = terrainWidth * terrainDepth;
+        		var data = new Float32Array( size );
+        		img.onload = function () {
+	        		context.drawImage(img,0,0);
+	        		var imgd = context.getImageData(0, 0, terrainWidth, terrainDepth);
+	        		var pix = imgd.data;
+	        		
+
+	        	for ( var i = 0; i < size; i ++ ) {
+	        		    data[i] = 0
+	        		}
+
+        		var j=0;
+        		for(var i = 0; i<pix.length; i +=4) {
+         			var all = pix[i]+pix[i+1]+pix[i+2];
+
+            		data[j++] = all/(12.0*scale)*3.5
+            		
+        			}
+        			heightData = data;
+        			//console.log(heightData);
+	        		make_terrain()
+	        	}	        	
+
+        		
+
+    		}
+
+            function createTerrainShape() {
+
+				// This parameter is not really used, since we are using PHY_FLOAT height data type and hence it is ignored
+				const heightScale = 1;
+
+				// Up axis = 0 for X, 1 for Y, 2 for Z. Normally 1 = Y is used.
+				const upAxis = 1;
+
+				// hdt, height data type. "PHY_FLOAT" is used. Possible values are "PHY_FLOAT", "PHY_UCHAR", "PHY_SHORT"
+				const hdt = 'PHY_FLOAT';
+
+				// Set this to your needs (inverts the triangles)
+				const flipQuadEdges = false;
+
+				// Creates height data buffer in Ammo heap
+				ammoHeightData = Ammo._malloc( 4 * terrainWidth * terrainDepth );
+
+				// Copy the javascript height data array to the Ammo one.
+				let p = 0;
+				let p2 = 0;
+
+				for ( let j = 0; j < terrainDepth; j ++ ) {
+
+					for ( let i = 0; i < terrainWidth; i ++ ) {
+
+						// write 32-bit float data to memory
+						Ammo.HEAPF32[ ammoHeightData + p2 >> 2 ] = heightData[ p ];
+
+						p ++;
+
+						// 4 bytes/float
+						p2 += 4;
+
+					}
+
+				}
+
+				// Creates the heightfield physics shape
+				const heightFieldShape = new Ammo.btHeightfieldTerrainShape(
+					terrainWidth,
+					terrainDepth,
+					ammoHeightData,
+					heightScale,
+					terrainMinHeight,
+					terrainMaxHeight,
+					upAxis,
+					hdt,
+					flipQuadEdges
+				);
+
+				// Set horizontal scale
+				const scaleX = terrainWidthExtents / ( terrainWidth - 1 );
+				const scaleZ = terrainDepthExtents / ( terrainDepth - 1 );
+				heightFieldShape.setLocalScaling( new Ammo.btVector3( scaleX, 1, scaleZ ) );
+
+				heightFieldShape.setMargin( 1.0 );
+				console.log(heightFieldShape);
+				return heightFieldShape;
+
+			}
+
+            function setupPhysicsWorld(){
+
+                let collisionConfiguration  = new Ammo.btDefaultCollisionConfiguration(),
+                    dispatcher              = new Ammo.btCollisionDispatcher(collisionConfiguration),
+                    overlappingPairCache    = new Ammo.btDbvtBroadphase(),
+                    solver                  = new Ammo.btSequentialImpulseConstraintSolver();
+
+                physicsWorld           = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+                physicsWorld.setGravity(new Ammo.btVector3(0, -100, 0));
+
+
+            }
+
+
+            function setupGraphics(){
+
+                //create clock for timing
+                clock = new THREE.Clock();
+
+                //create the scene
+                scene = new THREE.Scene();
+                //scene.background = new THREE.Color( 0xbfd1e5 );
+
+                scene.add( new THREE.AmbientLight( 0xf0f0f0 ) );
+
+                scene.background = new THREE.Color( 0xf0f0f0 );
+                scene.fog = new THREE.FogExp2( 0xefd1b5, 0.003 );
+                //create camera
+                //camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.2, 5000 );
+                //camera.position.set( 0, 30, 70 );
+                //camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+                //Add hemisphere light
+                //let hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.1 );
+                //hemiLight.color.setHSL( 0.6, 0.6, 0.6 );
+                //hemiLight.groundColor.setHSL( 0.1, 1, 0.4 );
+                //hemiLight.position.set( 0, 50, 0 );
+                //scene.add( hemiLight );
+
+                //Add directional light
+                //let dirLight = new THREE.DirectionalLight( 0xffffff , 1);
+                //dirLight.color.setHSL( 0.1, 1, 0.95 );
+                //dirLight.position.set( -1, 1.75, 1 );
+                //dirLight.position.multiplyScalar( 100 );
+                //scene.add( dirLight );
+
+                //dirLight.castShadow = true;
+
+                //dirLight.shadow.mapSize.width = 2048;
+                //dirLight.shadow.mapSize.height = 2048;
+
+                //let d = 50;
+
+                //dirLight.shadow.camera.left = -d;
+                //dirLight.shadow.camera.right = d;
+                //dirLight.shadow.camera.top = d;
+                //dirLight.shadow.camera.bottom = -d;
+
+                //dirLight.shadow.camera.far = 13500;
+
+                //Setup the renderer
+
+                //renderer = new THREE.WebGLRenderer( { antialias: true } );
+                //renderer.setClearColor( 0xbfd1e5 );
+                //renderer.setPixelRatio( window.devicePixelRatio );
+                //renderer.setSize( window.innerWidth, window.innerHeight );
+                
+
+                //renderer.gammaInput = true;
+                //renderer.gammaOutput = true;
+
+                //renderer.shadowMap.enabled = true;
+                renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.toneMapping = THREE.ACESFilmicToneMapping;
+				renderer.toneMappingExposure = 1;
+				renderer.outputEncoding = THREE.sRGBEncoding;
+				document.body.appendChild( renderer.domElement );
+				//document.body.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT)
+            }
+
+        
+            function renderFrame(){
+
+                let deltaTime = clock.getDelta();
+                
+                moveBall();
+
+                updatePhysics( deltaTime );
+                renderer.render( scene, camera );
+
+                requestAnimationFrame( renderFrame );
+
+            }
+
+            function setupEventHandlers(){
+
+                window.addEventListener( 'keydown', handleKeyDown, false);
+                window.addEventListener( 'keyup', handleKeyUp, false);
+                window.addEventListener('touchstart', touchHandler, false);
+				window.addEventListener('touchmove', touchHandler, false);
+				window.addEventListener('touchend', touchEnd, false);
+				document.addEventListener("touchmove", preventBehavior, {passive: false});
+
+            }
+
+
+            function handleKeyDown(event){
+
+                let keyCode = event.keyCode;
+
+                switch(keyCode){
+
+                    case 87: //W: FORWARD
+                        moveDirection.forward = 1
+                        break;
+                        
+                    case 83: //S: BACK
+                        moveDirection.back = 1
+                        break;
+                        
+                    case 65: //A: LEFT
+                        moveDirection.left = 1
+                        break;
+                        
+                    case 68: //D: RIGHT
+                        moveDirection.right = 1
+                        break;
+
+                    case 38: //↑: FORWARD
+                        kMoveDirection.forward = 1
+                        break;
+                        
+                    case 40: //↓: BACK
+                        kMoveDirection.back = 1
+                        break;
+                        
+                    case 37: //←: LEFT
+                        kMoveDirection.left = 1
+                        break;
+                        
+                    case 39: //→: RIGHT
+                        kMoveDirection.right = 1
+                        break;
+                        
+                }
+            }
+            
+            
+            function handleKeyUp(event){
+                let keyCode = event.keyCode;
+
+                switch(keyCode){
+                    case 87: //FORWARD
+                        moveDirection.forward = 0
+                        break;
+                        
+                    case 83: //BACK
+                        moveDirection.back = 0
+                        break;
+                        
+                    case 65: //LEFT
+                        moveDirection.left = 0
+                        break;
+                        
+                    case 68: //RIGHT
+                        moveDirection.right = 0
+                        break;
+
+                    case 38: //↑: FORWARD
+                        kMoveDirection.forward = 0
+                        break;
+                        
+                    case 40: //↓: BACK
+                        kMoveDirection.back = 0
+                        break;
+                        
+                    case 37: //←: LEFT
+                        kMoveDirection.left = 0
+                        break;
+                        
+                    case 39: //→: RIGHT
+                        kMoveDirection.right = 0
+                        break;
+                }
+
+            }
+
+
+            function createBall(){
+                
+                let pos = {x: 0, y: 1500, z: 0};
+                let radius = 12;
+                let quat = {x: 0, y: 0, z: 0, w: 1};
+                let mass = 1;
+
+                //threeJS Section
+                ball = ballObject = new THREE.Mesh(new THREE.SphereGeometry(radius), new THREE.MeshPhongMaterial({color: 0xff0505}));
+                
+                ball.position.set(pos.x, pos.y, pos.z);
+                
+                ball.castShadow = true;
+                ball.receiveShadow = true;
+
+                //scene.add(ball);
+
+
+                //Ammojs Section
+                let transform = new Ammo.btTransform();
+                transform.setIdentity();
+                transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
+                transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
+                let motionState = new Ammo.btDefaultMotionState( transform );
+
+                let colShape = new Ammo.btSphereShape( radius );
+                colShape.setMargin( 0.05 );
+
+                let localInertia = new Ammo.btVector3( 0, 0, 0 );
+                colShape.calculateLocalInertia( mass, localInertia );
+
+                let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
+                let body = new Ammo.btRigidBody( rbInfo );
+                //body.fixedTimeStep = 1 / 500;
+                console.log(body);
+                //body.setFriction(2000000);
+                //body.setRollingFriction(20000000);
+                //body.setRollingFriction(20000000);
+                //body.setRestitution(20000000);
+
+                body.setActivationState( STATE.DISABLE_DEACTIVATION );
+                //body.setCcdMotionThreshold(0.03);
+                //body.setCcdSweptSphereRadius(0.2)
+
+
+                physicsWorld.addRigidBody( body );
+                
+                ball.userData.physicsBody = body;
+                rigidBodies.push(ball);
+
+
+				
+
+            }
+
+
+            
+            function createKinematicBox(){
+                
+                let pos = {x: 40, y: 6, z: 5};
+                let scale = {x: 10, y: 10, z: 10};
+                let quat = {x: 0, y: 0, z: 0, w: 1};
+                let mass = 1;
+
+                //threeJS Section
+                kObject = new THREE.Mesh(new THREE.BoxBufferGeometry(), new THREE.MeshPhongMaterial({color: 0x30ab78}));
+
+                kObject.position.set(pos.x, pos.y, pos.z);
+                kObject.scale.set(scale.x, scale.y, scale.z);
+
+                kObject.castShadow = true;
+                kObject.receiveShadow = true;
+
+                scene.add(kObject);
+
+
+                //Ammojs Section
+                let transform = new Ammo.btTransform();
+                transform.setIdentity();
+                transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
+                transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
+                let motionState = new Ammo.btDefaultMotionState( transform );
+
+                let colShape = new Ammo.btBoxShape( new Ammo.btVector3( scale.x * 0.5, scale.y * 0.5, scale.z * 0.5 ) );
+                colShape.setMargin( 0.05 );
+
+                let localInertia = new Ammo.btVector3( 0, 0, 0 );
+                colShape.calculateLocalInertia( mass, localInertia );
+
+                let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
+                let body = new Ammo.btRigidBody( rbInfo );
+
+                body.setFriction(4);
+                body.setRollingFriction(10);
+                
+                body.setActivationState( STATE.DISABLE_DEACTIVATION );
+                body.setCollisionFlags( FLAGS.CF_KINEMATIC_OBJECT );
+
+
+                physicsWorld.addRigidBody( body );
+                kObject.userData.physicsBody = body;
+
+            }
+
+
+
+            function moveBall(){
+
+            	//mouse.x = +(event.targetTouches[0].pageX / window.innerWidth) * 2 +-1;
+
+				//mouse.y = -(event.targetTouches[0].pageY / window.innerHeight) * 2 + 1;
+            	
+                let scalingFactor = 5;
+
+                moveX +=  kMoveDirection.right - kMoveDirection.left;
+                moveZ +=  kMoveDirection.back - kMoveDirection.forward;
+                let moveY =  0; 
+                ballHolder.rotation.y-=moveX*0.015;
+                //if(moveZ == 0) return;
+
+                var vector = new THREE.Vector3()
+                camera.getWorldDirection( vector );
+                //console.log(vector.z)
+                
+                let resultantImpulse = new Ammo.btVector3( -vector.x*moveZ, 0, -vector.z*moveZ )
+                resultantImpulse.op_mul(scalingFactor);
+
+                let physicsBody = ballObject.userData.physicsBody;
+                let test = physicsBody.getLinearVelocity();
+                //physicsBody.setAngularVelocity(new Ammo.btVector3(0,0,0))
+                //physicsBody.setLinearVelocity(test.op_mul(0.97));
+                //physicsBody.applyForce( resultantImpulse);
+                test.op_add(resultantImpulse);
+                physicsBody.setLinearVelocity(test.op_mul(0.97));
+                let side = new THREE.Vector3(test.x(),0,test.z());
+                vector.normalize();
+                vector.cross(new THREE.Vector3(0,1,0));
+                side.normalize();
+                smoothZ.push(vector.dot(side));
+                smoothX.push(test.y());
+                hover.rotation.x = (smoothX.reduce((a,b) => (a+b)) / smoothX.length)*0.005
+                hover.rotation.z = (smoothZ.reduce((a,b) => (a+b)) / smoothZ.length)*0.4;
+                	
+                //console.log(smooth.reduce((a,b) => (a+b)) / smooth.length);
+                smoothX.shift();
+                smoothZ.shift();
+                moveX = 0;
+                moveZ = 0;
+
+
+
+            }
+
+            /*
+            function moveKinematic(){
+
+                let scalingFactor = 0.3;
+
+                let moveX =  kMoveDirection.right - kMoveDirection.left;
+                let moveZ =  kMoveDirection.back - kMoveDirection.forward;
+                let moveY =  0;
+
+
+                let translateFactor = tmpPos.set(moveX, moveY, moveZ);
+
+                translateFactor.multiplyScalar(scalingFactor);
+
+                kObject.translateX(translateFactor.x);
+                kObject.translateY(translateFactor.y);
+                kObject.translateZ(translateFactor.z);
+				
+				kObject.getWorldPosition(tmpPos);
+				kObject.getWorldQuaternion(tmpQuat);
+
+                let physicsBody = kObject.userData.physicsBody;
+
+                let ms = physicsBody.getMotionState();
+                if ( ms ) {
+
+                    ammoTmpPos.setValue(tmpPos.x, tmpPos.y, tmpPos.z);
+                    ammoTmpQuat.setValue( tmpQuat.x, tmpQuat.y, tmpQuat.z, tmpQuat.w);
+
+                    
+                    tmpTrans.setIdentity();
+                    tmpTrans.setOrigin( ammoTmpPos ); 
+                    tmpTrans.setRotation( ammoTmpQuat ); 
+
+                    ms.setWorldTransform(tmpTrans);
+
+                }
+
+            }
+            */
+
+
+
+
+            function updatePhysics( deltaTime ){
+
+
+            	
+            	ballHolder.position.copy(ball.position);
+            	smoothPY.push(ball.position.y);
+            	ballHolder.position.y = (smoothPY.reduce((a,b) => (a+b)) / smoothPY.length)
+	           	smoothPY.shift();
+
+            	let handVec = new THREE.Vector3()
+				ballHolder.getWorldPosition(handVec)
+				handVec.y+=6;
+				handVec.y*=1;
+            	//controls.target= handVec;
+            	//controls.update();
+                // Step world
+                
+
+                physicsWorld.stepSimulation( deltaTime,10);
+
+
+                // Update rigid bodies
+                for ( let i = 0; i < rigidBodies.length; i++ ) {
+                    let objThree = rigidBodies[ i ];
+                    let objAmmo = objThree.userData.physicsBody;
+                    let ms = objAmmo.getMotionState();
+                    if ( ms ) {
+
+                        ms.getWorldTransform( tmpTrans );
+                        let p = tmpTrans.getOrigin();
+                        let q = tmpTrans.getRotation();
+                        objThree.position.set( p.x(), p.y(), p.z() );
+                        objThree.quaternion.set( q.x(), q.y(), q.z(), q.w() );
+
+                    }
+                }	
+
+            }
+
+
+        </script>
+    </body>
+</html>
