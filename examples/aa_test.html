@@ -146,7 +146,9 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 
 			const manager = new THREE.LoadingManager();
 			manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
+			
 
+			document.getElementById("startButton").style.display = "none";
 			console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
 
 			};
@@ -154,6 +156,7 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 			manager.onLoad = function ( ) {
 
 			console.log( 'Loading complete!');
+			document.getElementById("startButton").style.display = "block";
 			const startButton = document.getElementById( 'startButton' );
 			startButton.addEventListener( 'click', prestart );
 
@@ -161,7 +164,7 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 
 			manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
 
-			
+
 			var elem = document.getElementById("myBar");
 			elem.value = itemsLoaded/itemsTotal*100;
 			console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
