@@ -1,13 +1,47 @@
 <html>
     <head>
         <meta charset="utf-8">
+        <META name="viewport" content="initial-scale=0.66, user-scalable=no"> 
         <title>JS 3D Physics</title>
+        <link rel="stylesheet" href="css/touch-pad.css">
+    	<link rel="stylesheet" href="css/main.css">
         <style>
-            body { margin: 0; }
+        	.ui {
+    		position: absolute;
+    		top: 100px;
+			}
+			.app
+			{
+			position: absolute;
+    		top: 100px;
+			}
+			.body
+			{
+			touch-action: none	
+			}
+
+
         </style>
     </head>
     <body>
+    	<label for="loading">Progress bar:</label>
+    	<progress id="myBar" class="ui" id="loading" value="0" max="100">50%</progress>
+    	<div id="overlay">
+			<button id="startButton" class="ui">Play</button>
+		</div>
+    	
+
+    	<audio id="song1" preload="auto" style="display: none">
+			<source src="sounds/radio01_red.mp3">
+		</audio>
+		<audio id="song2" preload="auto" style="display: none">
+			<source src="sounds/radio02.mp3">
+		<audio id="song3" preload="auto" style="display: none">
+			<source src="sounds/radio03.mp3">
+		</audio>
     	<script src="jsm/libs/ammo.wasm.js"></script>
+
+    	<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
     	<script type="importmap">
 			{
 				"imports": {
@@ -16,11 +50,12 @@
 				}
 			}
 		</script>
-		        <script type="module">
+		        <script type="module" class="ui">
         	import * as THREE from 'three';
         	import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         	import { Gyroscope } from 'three/addons/misc/Gyroscope.js';
+        	import TouchControls from './js/TouchControls.js'
             //variable declaration section
             //variable declaration section
             let physicsWorld, scene, camera, renderer, rigidBodies = [], tmpTrans = null , clock
@@ -58,40 +93,123 @@
 			let smoothX = Array(15).fill(0);
 			let smoothZ = Array(7).fill(0);
 			let smoothPY = Array(7).fill(0);
-
+			let smoothI = Array(25).fill(0);
 			let mouse;
 			let moveZ=0.0;
 			let moveX=0.0;
 
 			let textureCube;
 			let scene_no_fog;
+			let song1,song2,song3;
+			let container;
+			let ctrl;
+
+			let width, height;
+			let dirLight;
+			let animPolesTexture;
+
+			let sc01,sc02,sc03
+
+// vertex shader
+THREE.ShaderChunk.fog_pars_vertex += `
+#ifdef USE_FOG
+  varying vec3 vWorldPosition;
+#endif
+`;
+
+THREE.ShaderChunk.fog_vertex += `
+#ifdef USE_FOG
+  vWorldPosition = worldPosition.xyz;
+#endif
+`;
+
+// fragment shader
+THREE.ShaderChunk.fog_pars_fragment += `
+#ifdef USE_FOG
+  varying vec3 vWorldPosition;
+
+  float fogHeight = 1200.0;
+#endif
+`;
+
+const FOG_APPLIED_LINE = 'gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );';
+THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPLIED_LINE, `
+  float fogFactor2 = smoothstep( fogHeight, 400.0, vWorldPosition.y );
+ 
+  fogFactor = fogFactor*fogFactor2;
+
+  ${FOG_APPLIED_LINE}
+`);
 
 
-            //Ammojs Initialization
-            Ammo().then(start)
+			//const viewer = document.getElementById( 'viewer' );
 
-            let touchHandler = function(event) {	
-  			let xm = 0, ym = 0;
+			const manager = new THREE.LoadingManager();
+			manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
+
+			console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+
+			};
+
+			manager.onLoad = function ( ) {
+
+			console.log( 'Loading complete!');
+			const startButton = document.getElementById( 'startButton' );
+			startButton.addEventListener( 'click', prestart );
+
+			};
+
+			manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
+
+			
+			var elem = document.getElementById("myBar");
+			elem.value = itemsLoaded/itemsTotal*100;
+			console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+			};	
+			
+			Ammo().then(start);
+
+			
+            
+            
+
+            function prestart (){
+            	const overlay = document.getElementById( 'overlay' );
+            	const myBar = document.getElementById( 'myBar' );
+				overlay.remove();
+				myBar.remove();
 
 
-				if (event.touches && event.touches[0]) {
-    				xm = event.touches[0].clientX;
-    				ym = event.touches[0].clientY;
-				} else if (event.originalEvent && event.originalEvent.changedTouches[0]) {
-    				xm = event.originalEvent.changedTouches[0].clientX;
-    				ym = event.originalEvent.changedTouches[0].clientY;
-				} else if (event.clientX && event.clientY) {
-    				xm = event.clientX;
-    				ym = event.clientY;
-				}
-				moveX = 5*((xm / window.innerWidth)-0.5);
-				moveZ = 20*((ym / window.innerHeight)-0.5);
-				console.log(moveZ);
-				}
+            	setupMusic();
 
-			let touchEnd = function(event) {
-				moveX = 0;
-				moveZ = 0;
+            	width = window.innerWidth
+    			height = window.innerHeight
+            	addControls();
+            	renderFrame();
+            	
+            	
+            }
+
+			function addControls() {
+			    // Camera
+
+			    let aspect = width / height
+			    let viewAngle = 45
+				let near = 1
+				let far = 10000
+			    let camera_mew = new THREE.PerspectiveCamera(viewAngle, aspect, near, far)
+			    // Controls
+			    let options = {
+			        delta: 0.75,           // coefficient of movement
+			        moveSpeed: 0.5,        // speed of movement
+			        rotationSpeed: 0.002,  // coefficient of rotation
+			        maxPitch: 55,          // max camera pitch angle
+			        hitTest: false,         // stop on hitting objects
+			        hitTestDistance: 40    // distance to test for hit
+			    }
+
+			    ctrl = new TouchControls(document.body, camera_mew, options)
+
 			}
 
 
@@ -108,15 +226,14 @@
 				camera.position.set( 0, 10, 30 );
                 ballHolder.add(camera);
 
-
-                console.log("test");
-
-                loader = new GLTFLoader().setPath( 'models/gltf/' );
+                loader = new GLTFLoader(manager).setPath( 'models/gltf/' );
                 loader.load( 'hover.glb', function ( gltf ) {
+					gltf.scene.traverse( function( node ) {
+        				if ( node.isMesh ) { node.castShadow = true; }
+    				} );
 					hover.add( gltf.scene );
 					ballHolder.add( hover );
-					//render();
-				} );
+				} );	
 
                
                 setupPhysicsWorld();
@@ -124,7 +241,7 @@
 
                 
                 getHeightData();
-                createBall();
+                
 
                 
 				
@@ -135,14 +252,17 @@
 
 				//controls = new OrbitControls( camera, renderer.domElement );
 				setupGraphics();
-
-                setupEventHandlers();        
-	            renderFrame();
+				createBall();
+				//prestart()
+                //setupEventHandlers();        
+	            
 	            }
 
                 
             function make_terrain() {
 	            const groundShape = createTerrainShape();
+
+	            //01
 	            const groundTransform = new Ammo.btTransform();
 				groundTransform.setIdentity();
 				// Shifts the terrain, since bullet re-centers it on its bounding box.
@@ -151,7 +271,32 @@
 				const groundLocalInertia = new Ammo.btVector3( 0, 0, 0 );
 				const groundMotionState = new Ammo.btDefaultMotionState( groundTransform );
 				const groundBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass, groundMotionState, groundShape, groundLocalInertia ) );
+				
 				physicsWorld.addRigidBody( groundBody );
+
+				//02
+				const groundTransform2 = new Ammo.btTransform();
+				groundTransform2.setIdentity();
+				// Shifts the terrain, since bullet re-centers it on its bounding box.
+				groundTransform2.setOrigin( new Ammo.btVector3( -3000, ( terrainMaxHeight + terrainMinHeight ) / 2, 0 ) );
+				const groundMass2 = 0;
+				const groundLocalInertia2 = new Ammo.btVector3( 0, 0, 0 );
+				const groundMotionState2 = new Ammo.btDefaultMotionState( groundTransform2 );
+				const groundBody2 = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass2, groundMotionState2, groundShape, groundLocalInertia2 ) );
+				physicsWorld.addRigidBody( groundBody2 );
+
+				//03
+				const groundTransform3 = new Ammo.btTransform();
+				groundTransform3.setIdentity();
+				// Shifts the terrain, since bullet re-centers it on its bounding box.
+				groundTransform3.setOrigin( new Ammo.btVector3( -3000, ( terrainMaxHeight + terrainMinHeight ) / 2, -3000 ) );
+				const groundMass3 = 0;
+				const groundLocalInertia3 = new Ammo.btVector3( 0, 0, 0 );
+				const groundMotionState3 = new Ammo.btDefaultMotionState( groundTransform3 );
+				const groundBody3 = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass3, groundMotionState3, groundShape, groundLocalInertia3 ) );
+
+				physicsWorld.addRigidBody( groundBody3 );
+
 
 				const geometry = new THREE.PlaneGeometry( terrainWidthExtents, terrainDepthExtents, terrainWidth - 1, terrainDepth - 1 );
 					geometry.rotateX( - Math.PI / 2 );
@@ -169,9 +314,9 @@
 
 					const groundMaterial = new THREE.MeshPhongMaterial( { color: 0xC7C7C7 } );
 					terrainMesh = new THREE.Mesh( geometry, groundMaterial );
-					//terrainMesh.receiveShadow = true;
-					//terrainMesh.castShadow = true;
-					//scene.add( terrainMesh );
+					terrainMesh.receiveShadow = true;
+					terrainMesh.castShadow = true;
+					scene.add( terrainMesh );
 
 				}
 
@@ -268,7 +413,6 @@
 				heightFieldShape.setLocalScaling( new Ammo.btVector3( scaleX, 1, scaleZ ) );
 
 				heightFieldShape.setMargin( 1.0 );
-				console.log(heightFieldShape);
 				return heightFieldShape;
 
 			}
@@ -281,11 +425,61 @@
                     solver                  = new Ammo.btSequentialImpulseConstraintSolver();
 
                 physicsWorld           = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-                physicsWorld.setGravity(new Ammo.btVector3(0, -100, 0));
+                physicsWorld.setGravity(new Ammo.btVector3(0, -80, 0));
 
 
             }
 
+            function setupMusic(){
+            	const listener = new THREE.AudioListener();
+				camera.add( listener );
+
+				//SPHERE
+
+				const material1 = new THREE.MeshPhongMaterial( { color: 0xffaa00, flatShading: true, shininess: 0 } );
+				const sphere = new THREE.SphereGeometry( 20, 32, 16 );
+
+
+
+            	const mesh1 = new THREE.Mesh( sphere, material1 );
+				mesh1.position.set( 0, 0, 0 );
+				scene.add( mesh1 );
+
+				const sound1 = new THREE.PositionalAudio( listener );
+				song1 = document.getElementById( 'song1' );
+				sound1.setMediaElementSource( song1 );
+				sound1.setRefDistance( 40 );
+				//sound1.setMaxDistance(100);
+				//sound1.startTime = 1000.0;
+				song1.play();
+				mesh1.add( sound1 );
+				
+				const mesh2 = new THREE.Mesh( sphere, material1 );
+				mesh2.position.set( -3000, 0, 0 );
+				scene.add( mesh2 );
+
+				const sound2 = new THREE.PositionalAudio( listener );
+				song2 = document.getElementById( 'song2' );
+				sound2.setMediaElementSource( song2 );
+				sound2.setRefDistance( 40 );
+				//sound2.setMaxDistance(100);
+				//sound2.startTime = -20000.0;
+				song2.play();
+				mesh2.add( sound2 );
+
+				const mesh3 = new THREE.Mesh( sphere, material1 );
+				mesh3.position.set( -3000, 0, -3000 );
+				scene.add( mesh3 );
+
+				const sound3 = new THREE.PositionalAudio( listener );
+				song3 = document.getElementById( 'song3' );
+				sound3.setMediaElementSource( song3 );
+				//sound3.setMaxDistance(10);
+				sound3.setRefDistance( 40 );
+				//sound3.startTime = -20000.0;
+				song3.play();
+				mesh3.add( sound3 );
+            }
 
             function setupGraphics(){
 
@@ -295,14 +489,19 @@
                 //create the scene
                 scene = new THREE.Scene();
                 scene_no_fog = new THREE.Scene();
-                //scene.background = new THREE.Color( 0xbfd1e5 );
-
-                scene.add( new THREE.AmbientLight( 0xf0f0f0 ) );
+                scene.background = new THREE.Color( 0xbfd1e5 );
+                var amb =  new THREE.AmbientLight( 0xf0f0f0 )
+                amb.intensity = 0.5;
+                scene.add(amb);
                 scene_no_fog.add( new THREE.AmbientLight( 0xf0f0f0 ) );
 
-                scene.background = new THREE.Color( 0xf0f0f0 );
-                scene.fog = new THREE.FogExp2( 0xefd1b5, 0.003 );
-                scene_no_fog.fog = new THREE.FogExp2( 0xefd1b5, 0.0002 );
+                //scene.background = new THREE.Color( 0x5e7bbf );
+                scene_no_fog.fog = new THREE.FogExp2( 0xf7e0c8, 0.0002 );
+                scene.fog = new THREE.FogExp2( 0xf7e0c8, 0.003 );
+                //scene_no_fog.fog = new THREE.FogExp2( 0xebf7ff, 0.0002 );
+                //scene.fog = new THREE.FogExp2( 0xebf7ff, 0.0025 );
+                //scene.fog = new THREE.FogExp2( 0x7dceff, 0.003 );
+                //scene_no_fog.fog = new THREE.FogExp2( 0xefd1b5, 0.0002 );
                 //create camera
                 //camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.2, 5000 );
                 //camera.position.set( 0, 30, 70 );
@@ -316,25 +515,35 @@
                 //scene.add( hemiLight );
 
                 //Add directional light
-                //let dirLight = new THREE.DirectionalLight( 0xffffff , 1);
+                dirLight = new THREE.DirectionalLight( 0xffc68a , 1);
                 //dirLight.color.setHSL( 0.1, 1, 0.95 );
-                //dirLight.position.set( -1, 1.75, 1 );
-                //dirLight.position.multiplyScalar( 100 );
-                //scene.add( dirLight );
+                dirLight.position.set( -1, 1.75, 1 );
+                dirLight.position.multiplyScalar( 100 );
+                scene.add( dirLight );
 
-                //dirLight.castShadow = true;
+                dirLight.castShadow = true;
+                dirLight.intensity = 3;
 
-                //dirLight.shadow.mapSize.width = 2048;
-                //dirLight.shadow.mapSize.height = 2048;
+                dirLight.shadow.mapSize.width = 2048;
+                dirLight.shadow.mapSize.height = 2048;
 
-                //let d = 50;
+                dirLight.shadow.radius =7;
 
-                //dirLight.shadow.camera.left = -d;
-                //dirLight.shadow.camera.right = d;
-                //dirLight.shadow.camera.top = d;
-                //dirLight.shadow.camera.bottom = -d;
+                let d = 30;
 
-                //dirLight.shadow.camera.far = 13500;
+                dirLight.shadow.camera.left = -d;
+                dirLight.shadow.camera.right = d;
+                dirLight.shadow.camera.top = d;
+                dirLight.shadow.camera.bottom = -d;
+
+                dirLight.shadow.camera.far = 13500;
+                
+                dirLight.target.position.y = -1;
+                dirLight.target.position.z = -1;
+                dirLight.target.position.x = -1;
+                ballHolder.add(dirLight);
+                ballHolder.add(dirLight.target);
+
 
                 //Setup the renderer
 
@@ -347,15 +556,24 @@
                 //renderer.gammaInput = true;
                 //renderer.gammaOutput = true;
 
-                //renderer.shadowMap.enabled = true;
+               
                 renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.toneMapping = THREE.ACESFilmicToneMapping;
 				renderer.toneMappingExposure = 1;
 				renderer.outputEncoding = THREE.sRGBEncoding;
+				renderer.shadowMap.enabled = true;
 				renderer.autoClear = false;
-				document.body.appendChild( renderer.domElement );
+				container = document.body.appendChild( renderer.domElement );
+				/*
+				if ( /(iPad|iPhone|iPod)/g.test( navigator.userAgent ) ) {
+
+					container.style.width = getComputedStyle( viewer ).width;
+					container.style.height = getComputedStyle( viewer ).height;
+					container.setAttribute( 'scrolling', 'no' );
+				}
+				*/ 
 
 
 				scene.add(ballHolder);
@@ -366,6 +584,22 @@
 				textureCube.encoding = THREE.sRGBEncoding;
 
 				var alphaMap = new THREE.TextureLoader().load('textures/c_col.jpg');
+				var land_light_map = new THREE.TextureLoader().load('textures/land_lightmap_tets.png');
+				var land_map = new THREE.TextureLoader().load('textures/sand2.jpg');
+				land_map.wrapS = land_map.wrapT = THREE.RepeatWrapping;
+				land_light_map.wrapS = land_light_map.wrapT = THREE.RepeatWrapping;
+
+
+				const land_mat = new THREE.MeshStandardMaterial( { 
+    						//lightMap: land_light_map, 
+    						map: land_light_map,
+    						color: 0x000000,
+    						//flatShading: true 
+    						//lightMapIntensity: 0.5
+
+						} );
+
+
 
                 const sphereMaterial = new THREE.MeshStandardMaterial( { 
     						color: 0,
@@ -375,37 +609,80 @@
     						envMapIntensity: 20,
     						specular: 0xffc382,
     						shininess: 30,
-    						roughness: 0.2
+    						roughness: 0.2,
+    						fog: false
 						} );
+                const sphereMaterialtr = new THREE.MeshStandardMaterial( { 
+    						color: 0,
+
+    						metalness: 0,
+    						envMap: textureCube, // optional environment map
+    						envMapIntensity: 20,
+    						specular: 0xffc382,
+    						shininess: 30,
+    						roughness: 0.2
+						} );                
 
                 loader.load( 'sky.glb', function ( gltf ) {
-					gltf.scene.position.y = -300	;
+					gltf.scene.position.y = -300;
+					//gltf.scene.getObjectByName('sky_out').blending(THREE.AdditiveBlending);
 					sky = gltf.scene;
 					camera.add( gltf.scene );
 				} );
                 loader.load( 'output.glb', function ( gltf ) {
+                	gltf.scene.getObjectByName('land_out').material.lightMap = gltf.scene.getObjectByName('land_out').material.map;
+                	gltf.scene.getObjectByName('land_out').material.map = land_map;
+                	gltf.scene.getObjectByName('land_out').material.lightMapIntensity = 70;
+                	gltf.scene.getObjectByName('land_out').material.bumpMap = land_map;
+                	gltf.scene.getObjectByName('land_out').material.bumpScale =12;
+                	gltf.scene.getObjectByName('land_out').material.roughness =1;
+                	gltf.scene.getObjectByName('land_out').material.metalness =0;
+			
+					//const groundMaterial = new THREE.MeshPhongMaterial( { color: 0xC7C7C7 } );
+					//gltf.scene.getObjectByName('land_out').material = groundMaterial;
+                	//console.log(gltf.scene.getObjectByName('land_out'));
+                	gltf.scene.traverse( function( node ) {
+        				if ( node.isMesh ) { node.receiveShadow = true; }
+    				} );
 					scene.add( gltf.scene );
 				} );
                 loader.load( 'trucks.glb', function ( gltf ) {
-					gltf.scene.getObjectByName('trucks_out').material = sphereMaterial;
+					gltf.scene.getObjectByName('trucks_out').material = sphereMaterialtr;
+					scene.add( gltf.scene );
+				} );
+				loader.load( 'poles.glb', function ( gltf ) {
+					//gltf.scene.getObjectByName('poles_out').material = sphereMaterial;
+					animPolesTexture = gltf.scene.getObjectByName('poles_out_anim').material;
+					scene.add( gltf.scene );
+				} );
+				loader.load( 'theater.glb', function ( gltf ) {
+					gltf.scene.traverse( function( node ) {
+        				if ( node.isMesh ) { node.receiveShadow = true; }
+    				} );
 					scene.add( gltf.scene );
 				} );
 				loader.load( 'station01.glb', function ( gltf ) {
 					
 					gltf.scene.getObjectByName('station01_out').material = sphereMaterial;
+					
 
 					gltf.scene.getObjectByName('station01_tube_out').material.alphaMap = alphaMap;
 					gltf.scene.getObjectByName('station01_tube_out').material.transparent = true;
-
-					scene_no_fog.add( gltf.scene);
+					sc01 = gltf.scene;
+					
+					scene.add(sc01);
 				} );
+
+				
+					
 				loader.load( 'station02.glb', function ( gltf ) {
 					gltf.scene.getObjectByName('station02_out').material = sphereMaterial;
+					
 
 					gltf.scene.getObjectByName('station02_tube_out').material.alphaMap = alphaMap;
 					gltf.scene.getObjectByName('station02_tube_out').material.transparent = true;
-
-					scene_no_fog.add( gltf.scene );
+					sc02 = gltf.scene;
+					scene.add( sc02 );
 				} );
 				loader.load( 'station03.glb', function ( gltf ) {
 
@@ -413,8 +690,9 @@
 					gltf.scene.getObjectByName('station03_tube_out').material.transparent = true;
 
 					gltf.scene.getObjectByName('station03_out').material = sphereMaterial;
-
-					scene_no_fog.add( gltf.scene );
+					
+					sc03 = gltf.scene;
+					scene.add( sc03 );
 				} );
 				loader.load( 'station04.glb', function ( gltf ) {
 
@@ -423,7 +701,7 @@
 
 					gltf.scene.getObjectByName('station04_out').material = sphereMaterial;
 
-					scene_no_fog.add( gltf.scene );
+					scene.add( gltf.scene );
 				} );
             }
 
@@ -521,7 +799,7 @@
                 let mass = 1;
 
                 //threeJS Section
-                ball = ballObject = new THREE.Mesh(new THREE.SphereGeometry(radius), new THREE.MeshPhongMaterial({color: 0xff0505}));
+                ball = ballObject = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshPhongMaterial({color: 0xff0505}));
                 
                 ball.position.set(pos.x, pos.y, pos.z);
                 
@@ -547,7 +825,7 @@
                 let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
                 let body = new Ammo.btRigidBody( rbInfo );
                 //body.fixedTimeStep = 1 / 500;
-                console.log(body);
+                //console.log(body);
                 //body.setFriction(2000000);
                 //body.setRollingFriction(20000000);
                 //body.setRollingFriction(20000000);
@@ -575,12 +853,14 @@
 
 				//mouse.y = -(event.targetTouches[0].pageY / window.innerHeight) * 2 + 1;
             	
-                let scalingFactor = 5;
+                let scalingFactor = 6;
 
                 moveX +=  kMoveDirection.right - kMoveDirection.left;
                 moveZ +=  kMoveDirection.back - kMoveDirection.forward;
-                let moveY =  0; 
-                ballHolder.rotation.y-=moveX*0.015;
+                let moveY =  0;
+                smoothI.push(moveX); 
+                ballHolder.rotation.y-=(smoothI.reduce((a,b) => (a+b)) / smoothI.length)*0.022;
+                smoothI.shift();
                 //if(moveZ == 0) return;
 
                 var vector = new THREE.Vector3()
@@ -598,10 +878,13 @@
                 test.op_add(resultantImpulse);
                 physicsBody.setLinearVelocity(test.op_mul(0.97));
                 let side = new THREE.Vector3(test.x(),0,test.z());
+             	
+                let len = side.length()*0.02;
                 vector.normalize();
                 vector.cross(new THREE.Vector3(0,1,0));
                 side.normalize();
-                smoothZ.push(vector.dot(side));
+                //console.log(len);
+                smoothZ.push(vector.dot(side)*len);
                 smoothX.push(test.y());
                 hover.rotation.x = (smoothX.reduce((a,b) => (a+b)) / smoothX.length)*0.005
                 hover.rotation.z = (smoothZ.reduce((a,b) => (a+b)) / smoothZ.length)*0.4;
@@ -659,8 +942,15 @@
 
                 let deltaTime = clock.getDelta();
                 
-                moveBall();
+                //animPolesTexture.map.offset.y += deltaTime*0.3;
 
+                //sc01.children[0].children[0].rotation.y +=deltaTime*0.3;
+                //sc02.children[0].children[0].rotation.y +=deltaTime*0.3;
+                //sc03.children[0].children[0].rotation.y +=deltaTime*0.3;
+                moveBall();
+                ctrl.update();
+                moveX = ctrl.velocity.x*1.5;
+                moveZ = ctrl.velocity.z*1.5;
                 updatePhysics( deltaTime );
                 renderer.clear();
 				renderer.render( scene, camera );
@@ -675,10 +965,7 @@
 
                 window.addEventListener( 'keydown', handleKeyDown, false);
                 window.addEventListener( 'keyup', handleKeyUp, false);
-                window.addEventListener('touchstart', touchHandler, false);
-				window.addEventListener('touchmove', touchHandler, false);
-				window.addEventListener('touchend', touchEnd, false);
-
+               
             }
 
 

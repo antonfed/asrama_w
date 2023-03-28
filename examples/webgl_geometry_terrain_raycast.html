@@ -1,36 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>three.js webgl - geometry - terrain</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<link type="text/css" rel="stylesheet" href="main.css">
-		<style>
-			body {
-				background-color: #bfd1e5;
-				color: #61443e;
-			}
-			a {
-				color: #a06851;
-			}
-			.touch-none {
-        	touch-action: none;
-    		}
-    		canvas {
-    		display: block; 
-			}
-		</style>
-	</head>
-	<body>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>JS 3D Physics</title>
+        <link rel="stylesheet" href="css/touch-pad.css">
+    	<link rel="stylesheet" href="css/main.css">
+        <style>
+            body { margin: 0; }
+        </style>
+    </head>
+    <body>
 
-		
-		<script src="jsm/libs/ammo.wasm.js"></script>
+    	
 
-		<!-- Import maps polyfill -->
-		<!-- Remove this when import maps will be widely supported -->
-		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
-
-		<script type="importmap">
+    	<audio id="song" preload="auto" style="display: none">
+			<source src="sounds/radio01.mp3">
+		</audio>
+		<audio id="song2" preload="auto" style="display: none">
+			<source src="sounds/radio02.mp3">
+		</audio>
+    	<script src="jsm/libs/ammo.wasm.js"></script>
+    	<script type="importmap">
 			{
 				"imports": {
 					"three": "../build/three.module.js",
@@ -38,12 +27,12 @@
 				}
 			}
 		</script>
-
-		    <script type="module">
+		        <script type="module">
         	import * as THREE from 'three';
         	import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         	import { Gyroscope } from 'three/addons/misc/Gyroscope.js';
+        	import TouchControls from './js/TouchControls.js'
             //variable declaration section
             //variable declaration section
             let physicsWorld, scene, camera, renderer, rigidBodies = [], tmpTrans = null , clock
@@ -86,39 +75,59 @@
 			let moveZ=0.0;
 			let moveX=0.0;
 
+			let textureCube;
+			let scene_no_fog;
+			let song1,song2;
+			let container;
+			let ctrl;
 
-            //Ammojs Initialization
-            Ammo().then(start)
+			let width, height;
 
+			//const viewer = document.getElementById( 'viewer' );
 
-            function preventBehavior(e) {
-    			e.preventDefault(); 
-			};
+			
+			
+			Ammo().then(start);
 
+			//const startButton = document.getElementById( 'startButton' );
+			//startButton.addEventListener( 'click', prestart );
+            
+            
 
+            function prestart (){
+            	//const overlay = document.getElementById( 'overlay' );
+				//overlay.remove();
 
-            let touchHandler = function(event) {	
-  			let xm = 0, ym = 0;
+            	//setupMusic();
 
+            	width = window.innerWidth
+    			height = window.innerHeight
+            	//addControls();
+            	renderFrame();
+            	
+            	
+            }
 
-				if (event.touches && event.touches[0]) {
-    				xm = event.touches[0].clientX;
-    				ym = event.touches[0].clientY;
-				} else if (event.originalEvent && event.originalEvent.changedTouches[0]) {
-    				xm = event.originalEvent.changedTouches[0].clientX;
-    				ym = event.originalEvent.changedTouches[0].clientY;
-				} else if (event.clientX && event.clientY) {
-    				xm = event.clientX;
-    				ym = event.clientY;
-				}
-				moveX = 5*((xm / window.innerWidth)-0.5);
-				moveZ = 20*((ym / window.innerHeight)-0.5);
-				console.log(moveZ);
-				}
+			function addControls() {
+			    // Camera
 
-			let touchEnd = function(event) {
-				moveX = 0;
-				moveZ = 0;
+			    let aspect = width / height
+			    let viewAngle = 45
+				let near = 1
+				let far = 10000
+			    let camera_mew = new THREE.PerspectiveCamera(viewAngle, aspect, near, far)
+			    // Controls
+			    let options = {
+			        delta: 0.75,           // coefficient of movement
+			        moveSpeed: 0.5,        // speed of movement
+			        rotationSpeed: 0.002,  // coefficient of rotation
+			        maxPitch: 55,          // max camera pitch angle
+			        hitTest: false,         // stop on hitting objects
+			        hitTestDistance: 40    // distance to test for hit
+			    }
+
+			    ctrl = new TouchControls(document.body, camera_mew, options)
+
 			}
 
 
@@ -135,21 +144,17 @@
 				camera.position.set( 0, 10, 30 );
                 ballHolder.add(camera);
 
-
-                console.log("test");
-
                 loader = new GLTFLoader().setPath( 'models/gltf/' );
                 loader.load( 'hover.glb', function ( gltf ) {
 					hover.add( gltf.scene );
 					ballHolder.add( hover );
-					//render();
 				} );
 
                
                 setupPhysicsWorld();
                 
 
-                setupGraphics();
+                
                 getHeightData();
                 createBall();
 
@@ -158,28 +163,13 @@
 
                 
 
-				scene.add(ballHolder);
+				
 
 				//controls = new OrbitControls( camera, renderer.domElement );
-
-
-
-                setupEventHandlers();
-                
-
-                loader.load( 'sky.glb', function ( gltf ) {
-					gltf.scene.position.y = -300	;
-					sky = gltf.scene;
-					camera.add( gltf.scene );
-					//render();
-				} );
-				//scene.add( camera );
-                loader = new GLTFLoader().setPath( 'models/gltf/' );
-                loader.load( 'output.glb', function ( gltf ) {
-					scene.add( gltf.scene );
-					//render();
-				} );
-	            renderFrame();
+				setupGraphics();
+				prestart()
+                //setupEventHandlers();        
+	            
 	            }
 
                 
@@ -328,6 +318,42 @@
 
             }
 
+            function setupMusic(){
+            	const listener = new THREE.AudioListener();
+				camera.add( listener );
+
+				//SPHERE
+
+				const material1 = new THREE.MeshPhongMaterial( { color: 0xffaa00, flatShading: true, shininess: 0 } );
+				const sphere = new THREE.SphereGeometry( 20, 32, 16 );
+
+
+
+            	const mesh1 = new THREE.Mesh( sphere, material1 );
+				mesh1.position.set( - 250, 30, 0 );
+				scene.add( mesh1 );
+
+				const sound1 = new THREE.PositionalAudio( listener );
+				song1 = document.getElementById( 'song' );
+				sound1.setMediaElementSource( song1 );
+				sound1.setRefDistance( 20 );
+				sound1.startTime = 100000.0;
+				song1.play();
+				sound1.startTime = 100000;
+				mesh1.add( sound1 );
+				
+				const mesh2 = new THREE.Mesh( sphere, material1 );
+				mesh2.position.set( 250, 30, 0 );
+				scene.add( mesh2 );
+
+				const sound2 = new THREE.PositionalAudio( listener );
+				song2 = document.getElementById( 'song2' );
+				sound2.setMediaElementSource( song2 );
+				sound2.setRefDistance( 20 );
+				sound2.startTime = -20000.0;
+				song2.play();
+				mesh2.add( sound2 );
+            }
 
             function setupGraphics(){
 
@@ -336,12 +362,15 @@
 
                 //create the scene
                 scene = new THREE.Scene();
+                scene_no_fog = new THREE.Scene();
                 //scene.background = new THREE.Color( 0xbfd1e5 );
 
                 scene.add( new THREE.AmbientLight( 0xf0f0f0 ) );
+                scene_no_fog.add( new THREE.AmbientLight( 0xf0f0f0 ) );
 
                 scene.background = new THREE.Color( 0xf0f0f0 );
                 scene.fog = new THREE.FogExp2( 0xefd1b5, 0.003 );
+                scene_no_fog.fog = new THREE.FogExp2( 0xefd1b5, 0.0002 );
                 //create camera
                 //camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.2, 5000 );
                 //camera.position.set( 0, 30, 70 );
@@ -393,34 +422,99 @@
 				renderer.toneMapping = THREE.ACESFilmicToneMapping;
 				renderer.toneMappingExposure = 1;
 				renderer.outputEncoding = THREE.sRGBEncoding;
-				document.body.appendChild( renderer.domElement );
-				//document.body.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT)
+				renderer.autoClear = false;
+				container = document.body.appendChild( renderer.domElement );
+				if ( /(iPad|iPhone|iPod)/g.test( navigator.userAgent ) ) {
+
+					container.style.width = getComputedStyle( viewer ).width;
+					container.style.height = getComputedStyle( viewer ).height;
+					container.setAttribute( 'scrolling', 'no' );
+				} 
+
+
+				scene.add(ballHolder);
+
+				const loader_env = new THREE.CubeTextureLoader();
+				loader_env.setPath( 'textures/cube/pisa/' );
+                textureCube = loader_env.load( [ 'px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png' ] );
+				textureCube.encoding = THREE.sRGBEncoding;
+
+				var alphaMap = new THREE.TextureLoader().load('textures/c_col.jpg');
+				var land_light_map = new THREE.TextureLoader().load('textures/c_col.jpg');
+				var land_map = new THREE.TextureLoader().load('textures/c_col.jpg');
+
+				const land_mat = new THREE.MeshStandardMaterial( { 
+    						color: 0,
+    						metalness: 0,
+    						lightMap: land_light_map, 
+    						map: land_map,
+						} );
+
+
+
+                const sphereMaterial = new THREE.MeshStandardMaterial( { 
+    						color: 0,
+
+    						metalness: 0,
+    						envMap: textureCube, // optional environment map
+    						envMapIntensity: 20,
+    						specular: 0xffc382,
+    						shininess: 30,
+    						roughness: 0.2
+						} );
+
+                loader.load( 'sky.glb', function ( gltf ) {
+					gltf.scene.position.y = -300	;
+					sky = gltf.scene;
+					camera.add( gltf.scene );
+				} );
+                loader.load( 'output.glb', function ( gltf ) {
+					scene.add( gltf.scene );
+					gltf.scene.getObjectByName('output').material = sphereMaterial;
+				} );
+                loader.load( 'trucks.glb', function ( gltf ) {
+					gltf.scene.getObjectByName('trucks_out').material = sphereMaterial;
+					scene.add( gltf.scene );
+				} );
+				loader.load( 'station01.glb', function ( gltf ) {
+					
+					gltf.scene.getObjectByName('station01_out').material = sphereMaterial;
+
+					gltf.scene.getObjectByName('station01_tube_out').material.alphaMap = alphaMap;
+					gltf.scene.getObjectByName('station01_tube_out').material.transparent = true;
+
+					scene_no_fog.add( gltf.scene);
+				} );
+				loader.load( 'station02.glb', function ( gltf ) {
+					gltf.scene.getObjectByName('station02_out').material = sphereMaterial;
+
+					gltf.scene.getObjectByName('station02_tube_out').material.alphaMap = alphaMap;
+					gltf.scene.getObjectByName('station02_tube_out').material.transparent = true;
+
+					scene_no_fog.add( gltf.scene );
+				} );
+				loader.load( 'station03.glb', function ( gltf ) {
+
+					gltf.scene.getObjectByName('station03_tube_out').material.alphaMap = alphaMap;
+					gltf.scene.getObjectByName('station03_tube_out').material.transparent = true;
+
+					gltf.scene.getObjectByName('station03_out').material = sphereMaterial;
+
+					scene_no_fog.add( gltf.scene );
+				} );
+				loader.load( 'station04.glb', function ( gltf ) {
+
+					//gltf.scene.getObjectByName('station03_tube_out').material.alphaMap = alphaMap;
+					//gltf.scene.getObjectByName('station03_tube_out').material.transparent = true;
+
+					gltf.scene.getObjectByName('station04_out').material = sphereMaterial;
+
+					scene_no_fog.add( gltf.scene );
+				} );
             }
 
         
-            function renderFrame(){
 
-                let deltaTime = clock.getDelta();
-                
-                moveBall();
-
-                updatePhysics( deltaTime );
-                renderer.render( scene, camera );
-
-                requestAnimationFrame( renderFrame );
-
-            }
-
-            function setupEventHandlers(){
-
-                window.addEventListener( 'keydown', handleKeyDown, false);
-                window.addEventListener( 'keyup', handleKeyUp, false);
-                window.addEventListener('touchstart', touchHandler, false);
-				window.addEventListener('touchmove', touchHandler, false);
-				window.addEventListener('touchend', touchEnd, false);
-				document.addEventListener("touchmove", preventBehavior, {passive: false});
-
-            }
 
 
             function handleKeyDown(event){
@@ -507,7 +601,7 @@
 
             function createBall(){
                 
-                let pos = {x: 0, y: 1500, z: 0};
+                let pos = {x: 0, y: 200, z: 0};
                 let radius = 12;
                 let quat = {x: 0, y: 0, z: 0, w: 1};
                 let mass = 1;
@@ -561,56 +655,6 @@
             }
 
 
-            
-            function createKinematicBox(){
-                
-                let pos = {x: 40, y: 6, z: 5};
-                let scale = {x: 10, y: 10, z: 10};
-                let quat = {x: 0, y: 0, z: 0, w: 1};
-                let mass = 1;
-
-                //threeJS Section
-                kObject = new THREE.Mesh(new THREE.BoxBufferGeometry(), new THREE.MeshPhongMaterial({color: 0x30ab78}));
-
-                kObject.position.set(pos.x, pos.y, pos.z);
-                kObject.scale.set(scale.x, scale.y, scale.z);
-
-                kObject.castShadow = true;
-                kObject.receiveShadow = true;
-
-                scene.add(kObject);
-
-
-                //Ammojs Section
-                let transform = new Ammo.btTransform();
-                transform.setIdentity();
-                transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
-                transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
-                let motionState = new Ammo.btDefaultMotionState( transform );
-
-                let colShape = new Ammo.btBoxShape( new Ammo.btVector3( scale.x * 0.5, scale.y * 0.5, scale.z * 0.5 ) );
-                colShape.setMargin( 0.05 );
-
-                let localInertia = new Ammo.btVector3( 0, 0, 0 );
-                colShape.calculateLocalInertia( mass, localInertia );
-
-                let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
-                let body = new Ammo.btRigidBody( rbInfo );
-
-                body.setFriction(4);
-                body.setRollingFriction(10);
-                
-                body.setActivationState( STATE.DISABLE_DEACTIVATION );
-                body.setCollisionFlags( FLAGS.CF_KINEMATIC_OBJECT );
-
-
-                physicsWorld.addRigidBody( body );
-                kObject.userData.physicsBody = body;
-
-            }
-
-
-
             function moveBall(){
 
             	//mouse.x = +(event.targetTouches[0].pageX / window.innerWidth) * 2 +-1;
@@ -658,50 +702,6 @@
 
             }
 
-            /*
-            function moveKinematic(){
-
-                let scalingFactor = 0.3;
-
-                let moveX =  kMoveDirection.right - kMoveDirection.left;
-                let moveZ =  kMoveDirection.back - kMoveDirection.forward;
-                let moveY =  0;
-
-
-                let translateFactor = tmpPos.set(moveX, moveY, moveZ);
-
-                translateFactor.multiplyScalar(scalingFactor);
-
-                kObject.translateX(translateFactor.x);
-                kObject.translateY(translateFactor.y);
-                kObject.translateZ(translateFactor.z);
-				
-				kObject.getWorldPosition(tmpPos);
-				kObject.getWorldQuaternion(tmpQuat);
-
-                let physicsBody = kObject.userData.physicsBody;
-
-                let ms = physicsBody.getMotionState();
-                if ( ms ) {
-
-                    ammoTmpPos.setValue(tmpPos.x, tmpPos.y, tmpPos.z);
-                    ammoTmpQuat.setValue( tmpQuat.x, tmpQuat.y, tmpQuat.z, tmpQuat.w);
-
-                    
-                    tmpTrans.setIdentity();
-                    tmpTrans.setOrigin( ammoTmpPos ); 
-                    tmpTrans.setRotation( ammoTmpQuat ); 
-
-                    ms.setWorldTransform(tmpTrans);
-
-                }
-
-            }
-            */
-
-
-
-
             function updatePhysics( deltaTime ){
 
 
@@ -739,6 +739,31 @@
                     }
                 }	
 
+            }
+
+            function renderFrame(){
+
+                let deltaTime = clock.getDelta();
+                
+                moveBall();
+                ctrl.update();
+                moveX = ctrl.velocity.x*1.5;
+                moveZ = ctrl.velocity.z*1.5;
+                updatePhysics( deltaTime );
+                renderer.clear();
+				renderer.render( scene, camera );
+				renderer.clearDepth();
+				renderer.render( scene_no_fog, camera );
+
+                requestAnimationFrame( renderFrame );
+
+            }
+
+            function setupEventHandlers(){
+
+                window.addEventListener( 'keydown', handleKeyDown, false);
+                window.addEventListener( 'keyup', handleKeyUp, false);
+               
             }
 
 
