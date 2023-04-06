@@ -5,6 +5,7 @@
         <title>JS 3D Physics</title>
         <link rel="stylesheet" href="css/touch-pad.css">
     	<link rel="stylesheet" href="css/main.css">
+    	<link type="text/css" rel="stylesheet" href="main.css">
         <style>
         	.ui {
     		position: absolute;
@@ -14,17 +15,25 @@
 			{
 			position: absolute;
     		top: 100px;
+    		outline: none;
+			margin: 0;
+			border:0
 			}
 			.body
 			{
+			outline: none;
+			margin: 0;
+			border:0
 			touch-action: none	
 			}
+			.canvas
+			{ outline: none;
+			 border: none; }
 
 
         </style>
     </head>
     <body>
-    	<label for="loading">Progress bar:</label>
     	<progress id="myBar" class="ui" id="loading" value="0" max="100">50%</progress>
     	<div id="overlay">
 			<button id="startButton" class="ui">Play</button>
@@ -75,7 +84,7 @@
 			const terrainDepth = 512;
 			const terrainHalfWidth = terrainWidth / 2;
 			const terrainHalfDepth = terrainDepth / 2;
-			const terrainMaxHeight = 180;
+			const terrainMaxHeight = 300;
 			const terrainMinHeight = 0;
 
 			let heightData = null;
@@ -113,6 +122,7 @@
 			let tileXmax = 1;
 			let tileZmin = -1;
 			let tileZmax = 1;
+			let tileStep = -3001.5;
 
 // vertex shader
 THREE.ShaderChunk.fog_pars_vertex += `
@@ -269,40 +279,23 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
             function make_terrain() {
 	            const groundShape = createTerrainShape();
 
-	            //01
-	            const groundTransform = new Ammo.btTransform();
-				groundTransform.setIdentity();
-				// Shifts the terrain, since bullet re-centers it on its bounding box.
-				groundTransform.setOrigin( new Ammo.btVector3( 0, ( terrainMaxHeight + terrainMinHeight ) / 2, 0 ) );
-				const groundMass = 0;
-				const groundLocalInertia = new Ammo.btVector3( 0, 0, 0 );
-				const groundMotionState = new Ammo.btDefaultMotionState( groundTransform );
-				const groundBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass, groundMotionState, groundShape, groundLocalInertia ) );
+
+	            for (let i =tileXmin; i <= tileXmax; i++) {
+						for (let j =tileZmin; j <= tileZmax; j++) {
+							const groundTransform = new Ammo.btTransform();
+							groundTransform.setIdentity();
+							// Shifts the terrain, since bullet re-centers it on its bounding box.
+							groundTransform.setOrigin( new Ammo.btVector3( 3000*j, ( terrainMaxHeight + terrainMinHeight ) / 2, 3000*i ) );
+							const groundMass = 0;
+							const groundLocalInertia = new Ammo.btVector3( 0, 0, 0 );
+							const groundMotionState = new Ammo.btDefaultMotionState( groundTransform );
+							const groundBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass, groundMotionState, groundShape, groundLocalInertia ) );
+							physicsWorld.addRigidBody( groundBody );
+				}};
 				
-				physicsWorld.addRigidBody( groundBody );
+				
 
-				//02
-				const groundTransform2 = new Ammo.btTransform();
-				groundTransform2.setIdentity();
-				// Shifts the terrain, since bullet re-centers it on its bounding box.
-				groundTransform2.setOrigin( new Ammo.btVector3( -3000, ( terrainMaxHeight + terrainMinHeight ) / 2, 0 ) );
-				const groundMass2 = 0;
-				const groundLocalInertia2 = new Ammo.btVector3( 0, 0, 0 );
-				const groundMotionState2 = new Ammo.btDefaultMotionState( groundTransform2 );
-				const groundBody2 = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass2, groundMotionState2, groundShape, groundLocalInertia2 ) );
-				physicsWorld.addRigidBody( groundBody2 );
 
-				//03
-				const groundTransform3 = new Ammo.btTransform();
-				groundTransform3.setIdentity();
-				// Shifts the terrain, since bullet re-centers it on its bounding box.
-				groundTransform3.setOrigin( new Ammo.btVector3( -3000, ( terrainMaxHeight + terrainMinHeight ) / 2, -3000 ) );
-				const groundMass3 = 0;
-				const groundLocalInertia3 = new Ammo.btVector3( 0, 0, 0 );
-				const groundMotionState3 = new Ammo.btDefaultMotionState( groundTransform3 );
-				const groundBody3 = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass3, groundMotionState3, groundShape, groundLocalInertia3 ) );
-
-				physicsWorld.addRigidBody( groundBody3 );
 
 
 				const geometry = new THREE.PlaneGeometry( terrainWidthExtents, terrainDepthExtents, terrainWidth - 1, terrainDepth - 1 );
@@ -646,7 +639,8 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
                 	gltf.scene.getObjectByName('land_out').material.metalness =0;
                 	
                 	const lod = new THREE.LOD();
-                	var lod00 = new THREE.InstancedMesh( gltf.scene.getObjectByName('land_out').geometry, gltf.scene.getObjectByName('land_out').material, 10)
+                	//var lod00 = new THREE.InstancedMesh( gltf.scene.getObjectByName('land_out').geometry, gltf.scene.getObjectByName('land_out').material, 10)
+                	var lod00 = gltf.scene.getObjectByName('land_out');
                 	var lod01 = new THREE.Object3D();
                 	lod.addLevel( lod00, 2000 );
                 	lod.addLevel( lod01, 2500 );
@@ -655,8 +649,8 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 
 							const copy = lod.clone();
 							copy.receiveShadow = true;
-							copy.position.x+=3000*j;
-							copy.position.z+=3000*i;
+							copy.position.x+=tileStep*j;
+							copy.position.z+=tileStep*i;
 							scene.add(copy);
 					}}
 					
@@ -670,8 +664,8 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 						for (let j =tileZmin; j <= tileZmax; j++) {
 							var nn = new THREE.InstancedMesh( gltf.scene.getObjectByName('trucks_out').geometry, sphereMaterialtr, 10)
 							nn.receiveShadow = true;
-							nn.position.x+=3000*j;
-							nn.position.z+=3000*i;
+							nn.position.x+=tileStep*j;
+							nn.position.z+=tileStep*i;
 							scene.add(nn);
 					}}
 				} );
@@ -684,12 +678,12 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 							var nn = new THREE.InstancedMesh( gltf.scene.getObjectByName('poles_out_anim').geometry, gltf.scene.getObjectByName('poles_out_anim').material, 10)
 							var ff = new THREE.InstancedMesh( gltf.scene.getObjectByName('poles_out').geometry, gltf.scene.getObjectByName('poles_out').material, 10)
 							nn.receiveShadow = true;
-							nn.position.x+=3000*j;
-							nn.position.z+=3000*i;
+							nn.position.x+=tileStep*j;
+							nn.position.z+=tileStep*i;
 							scene.add(nn);
 							ff.receiveShadow = true;
-							ff.position.x+=3000*j;
-							ff.position.z+=3000*i;
+							ff.position.x+=tileStep*j;
+							ff.position.z+=tileStep*i;
 							scene.add(ff);
 					}}
 
@@ -699,8 +693,8 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 						for (let j =tileZmin; j <= tileZmax; j++) {
 							var nn = new THREE.InstancedMesh( gltf.scene.getObjectByName('theater_out').geometry, gltf.scene.getObjectByName('theater_out').material, 10)
 							nn.receiveShadow = true;
-							nn.position.x+=3000*j;
-							nn.position.z+=3000*i;
+							nn.position.x+=tileStep*j;
+							nn.position.z+=tileStep*i;
 							scene.add(nn);
 					}}
 				} );
