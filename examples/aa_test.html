@@ -35,7 +35,7 @@
 			<source src="sounds/radio01_red.mp3">
 		</audio>
 		<audio id="song2" preload="auto" style="display: none">
-			<source src="sounds/radio02.mp3">
+			<source src="sounds/radio02_b.mp3">
 		<audio id="song3" preload="auto" style="display: none">
 			<source src="sounds/radio03.mp3">
 		</audio>
@@ -109,6 +109,10 @@
 			let animPolesTexture;
 
 			let sc01,sc02,sc03
+			let tileXmin = -1;
+			let tileXmax = 1;
+			let tileZmin = -1;
+			let tileZmax = 1;
 
 // vertex shader
 THREE.ShaderChunk.fog_pars_vertex += `
@@ -199,7 +203,7 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 			    let aspect = width / height
 			    let viewAngle = 45
 				let near = 1
-				let far = 10000
+				let far = 300
 			    let camera_mew = new THREE.PerspectiveCamera(viewAngle, aspect, near, far)
 			    // Controls
 			    let options = {
@@ -315,11 +319,11 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 
 					geometry.computeVertexNormals();
 
-					const groundMaterial = new THREE.MeshPhongMaterial( { color: 0xC7C7C7 } );
-					terrainMesh = new THREE.Mesh( geometry, groundMaterial );
-					terrainMesh.receiveShadow = true;
-					terrainMesh.castShadow = true;
-					scene.add( terrainMesh );
+					//const groundMaterial = new THREE.MeshPhongMaterial( { color: 0xC7C7C7 } );
+					//terrainMesh = new THREE.Mesh( geometry, groundMaterial );
+					//terrainMesh.receiveShadow = true;
+					//terrainMesh.castShadow = true;
+					//scene.add( terrainMesh );
 
 				}
 
@@ -640,29 +644,65 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
                 	gltf.scene.getObjectByName('land_out').material.bumpScale =12;
                 	gltf.scene.getObjectByName('land_out').material.roughness =1;
                 	gltf.scene.getObjectByName('land_out').material.metalness =0;
-			
-					//const groundMaterial = new THREE.MeshPhongMaterial( { color: 0xC7C7C7 } );
-					//gltf.scene.getObjectByName('land_out').material = groundMaterial;
-                	//console.log(gltf.scene.getObjectByName('land_out'));
+                	
+                	const lod = new THREE.LOD();
+                	var lod00 = new THREE.InstancedMesh( gltf.scene.getObjectByName('land_out').geometry, gltf.scene.getObjectByName('land_out').material, 10)
+                	var lod01 = new THREE.Object3D();
+                	lod.addLevel( lod00, 2000 );
+                	lod.addLevel( lod01, 2500 );
+					for (let i =tileXmin; i <= tileXmax; i++) {
+						for (let j =tileZmin; j <= tileZmax; j++) {
+
+							const copy = lod.clone();
+							copy.receiveShadow = true;
+							copy.position.x+=3000*j;
+							copy.position.z+=3000*i;
+							scene.add(copy);
+					}}
+					
                 	gltf.scene.traverse( function( node ) {
         				if ( node.isMesh ) { node.receiveShadow = true; }
     				} );
-					scene.add( gltf.scene );
+					//scene.add( gltf.scene );
 				} );
                 loader.load( 'trucks.glb', function ( gltf ) {
-					gltf.scene.getObjectByName('trucks_out').material = sphereMaterialtr;
-					scene.add( gltf.scene );
+					for (let i =tileXmin; i <= tileXmax; i++) {
+						for (let j =tileZmin; j <= tileZmax; j++) {
+							var nn = new THREE.InstancedMesh( gltf.scene.getObjectByName('trucks_out').geometry, sphereMaterialtr, 10)
+							nn.receiveShadow = true;
+							nn.position.x+=3000*j;
+							nn.position.z+=3000*i;
+							scene.add(nn);
+					}}
 				} );
+
+
 				loader.load( 'poles.glb', function ( gltf ) {
-					//gltf.scene.getObjectByName('poles_out').material = sphereMaterial;
 					animPolesTexture = gltf.scene.getObjectByName('poles_out_anim').material;
-					scene.add( gltf.scene );
+					for (let i =tileXmin; i <= tileXmax; i++) {
+						for (let j =tileZmin; j <= tileZmax; j++) {
+							var nn = new THREE.InstancedMesh( gltf.scene.getObjectByName('poles_out_anim').geometry, gltf.scene.getObjectByName('poles_out_anim').material, 10)
+							var ff = new THREE.InstancedMesh( gltf.scene.getObjectByName('poles_out').geometry, gltf.scene.getObjectByName('poles_out').material, 10)
+							nn.receiveShadow = true;
+							nn.position.x+=3000*j;
+							nn.position.z+=3000*i;
+							scene.add(nn);
+							ff.receiveShadow = true;
+							ff.position.x+=3000*j;
+							ff.position.z+=3000*i;
+							scene.add(ff);
+					}}
+
 				} );
 				loader.load( 'theater.glb', function ( gltf ) {
-					gltf.scene.traverse( function( node ) {
-        				if ( node.isMesh ) { node.receiveShadow = true; }
-    				} );
-					scene.add( gltf.scene );
+					for (let i =tileXmin; i <= tileXmax; i++) {
+						for (let j =tileZmin; j <= tileZmax; j++) {
+							var nn = new THREE.InstancedMesh( gltf.scene.getObjectByName('theater_out').geometry, gltf.scene.getObjectByName('theater_out').material, 10)
+							nn.receiveShadow = true;
+							nn.position.x+=3000*j;
+							nn.position.z+=3000*i;
+							scene.add(nn);
+					}}
 				} );
 				loader.load( 'station01.glb', function ( gltf ) {
 					
@@ -709,7 +749,6 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
             }
 
         
-
 
 
             function handleKeyDown(event){
