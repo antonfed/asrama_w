@@ -15,6 +15,7 @@ class TouchControls {
     #scene
     #rotationMatrices
     #hitObjects
+    rot
     velocity
     #cameraHolder
     #maxPitch
@@ -44,6 +45,7 @@ class TouchControls {
         this.#rotationMatrices = []
         this.#hitObjects = []
         this.#maxPitch = this.config.maxPitch * Math.PI / 180
+        this.rot = new THREE.Vector2()
         this.velocity = new THREE.Vector3(0, 0, 0)
         this.mouse = new THREE.Vector2()
         this.#cameraHolder = new THREE.Object3D()
@@ -57,9 +59,13 @@ class TouchControls {
         this.rotationPad = new RotationPad(container)
         this.rotationPad.padElement.addEventListener('YawPitch', (event) =>{
             let rotation = this.#calculateCameraRotation(event.detail.deltaX, event.detail.deltaY)
+            console.log(rotation)
+            this.rot.x = rotation.rx
+            this.rot.y = rotation.ry
             this.setRotation(rotation.rx, rotation.ry)
-        })
 
+        })
+        
         // Creating movement pad
         this.movementPad = new MovementPad(container)
         this.movementPad.padElement.addEventListener('move', (event) => {

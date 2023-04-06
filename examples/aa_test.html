@@ -29,6 +29,10 @@
 			.canvas
 			{ outline: none;
 			 border: none; }
+			.startButton
+			{
+			display:none;	
+			}
 
 
         </style>
@@ -36,7 +40,7 @@
     <body>
     	<progress id="myBar" class="ui" id="loading" value="0" max="100">50%</progress>
     	<div id="overlay">
-			<button id="startButton" class="ui">Play</button>
+			<button id="startButton" style="display: none;" class="ui">Play</button>
 		</div>
     	
 
@@ -93,7 +97,8 @@
 			let img;
 			let scale;
 			let gyro;
-			let ballHolder = new THREE.Object3D();;
+			let ballHolder = new THREE.Object3D();
+			let cameraHolder = new THREE.Object3D();;
 			let controls;
 			let loader;
 			let hover = new THREE.Object3D();
@@ -155,6 +160,7 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
   ${FOG_APPLIED_LINE}
 `);
 
+document.getElementById("startButton").style.display = "none";
 
 			//const viewer = document.getElementById( 'viewer' );
 
@@ -162,7 +168,7 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 			manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
 			
 
-			document.getElementById("startButton").style.display = "none";
+			
 			console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
 
 			};
@@ -241,7 +247,9 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
                 camera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 10000 );
                 
 				camera.position.set( 0, 10, 30 );
-                ballHolder.add(camera);
+				camera.rotation.set( -0.1, 0, 0 );
+				cameraHolder.add(camera);
+                ballHolder.add(cameraHolder);
 
                 loader = new GLTFLoader(manager).setPath( 'models/gltf/' );
                 loader.load( 'hover.glb', function ( gltf ) {
@@ -280,12 +288,12 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 	            const groundShape = createTerrainShape();
 
 
-	            for (let i =tileXmin; i <= tileXmax; i++) {
-						for (let j =tileZmin; j <= tileZmax; j++) {
+	            for (let i =tileXmin-1; i <= tileXmax+1; i++) {
+						for (let j =tileZmin-1; j <= tileZmax+1; j++) {
 							const groundTransform = new Ammo.btTransform();
 							groundTransform.setIdentity();
 							// Shifts the terrain, since bullet re-centers it on its bounding box.
-							groundTransform.setOrigin( new Ammo.btVector3( 3000*j, ( terrainMaxHeight + terrainMinHeight ) / 2, 3000*i ) );
+							groundTransform.setOrigin( new Ammo.btVector3( tileStep*j, ( terrainMaxHeight + terrainMinHeight ) / 2, tileStep*i ) );
 							const groundMass = 0;
 							const groundLocalInertia = new Ammo.btVector3( 0, 0, 0 );
 							const groundMotionState = new Ammo.btDefaultMotionState( groundTransform );
@@ -481,6 +489,15 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 				mesh3.add( sound3 );
             }
 
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+
             function setupGraphics(){
 
                 //create clock for timing
@@ -575,6 +592,14 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 				}
 				*/ 
 
+				//
+                //
+                //
+                //
+                //
+                //
+                //
+                //
 
 				scene.add(ballHolder);
 
@@ -660,42 +685,53 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 					//scene.add( gltf.scene );
 				} );
                 loader.load( 'trucks.glb', function ( gltf ) {
+                	const lod = new THREE.LOD();
+                	var lod00 = gltf.scene.getObjectByName('trucks_out');
+                	var lod01 = new THREE.Object3D();
+                	lod.addLevel( lod00, 2000 );
+                	lod.addLevel( lod01, 2500 );
 					for (let i =tileXmin; i <= tileXmax; i++) {
 						for (let j =tileZmin; j <= tileZmax; j++) {
-							var nn = new THREE.InstancedMesh( gltf.scene.getObjectByName('trucks_out').geometry, sphereMaterialtr, 10)
-							nn.receiveShadow = true;
-							nn.position.x+=tileStep*j;
-							nn.position.z+=tileStep*i;
-							scene.add(nn);
+							
+							const copy = lod.clone();
+							copy.receiveShadow = true;
+							copy.position.x+=tileStep*j;
+							copy.position.z+=tileStep*i;
+							scene.add(copy);
 					}}
 				} );
 
 
 				loader.load( 'poles.glb', function ( gltf ) {
 					animPolesTexture = gltf.scene.getObjectByName('poles_out_anim').material;
+					const lod = new THREE.LOD();
+                	var lod00 = gltf.scene;
+                	var lod01 = new THREE.Object3D();
+                	lod.addLevel( lod00, 2000 );
+                	lod.addLevel( lod01, 2500 );
 					for (let i =tileXmin; i <= tileXmax; i++) {
 						for (let j =tileZmin; j <= tileZmax; j++) {
-							var nn = new THREE.InstancedMesh( gltf.scene.getObjectByName('poles_out_anim').geometry, gltf.scene.getObjectByName('poles_out_anim').material, 10)
-							var ff = new THREE.InstancedMesh( gltf.scene.getObjectByName('poles_out').geometry, gltf.scene.getObjectByName('poles_out').material, 10)
-							nn.receiveShadow = true;
-							nn.position.x+=tileStep*j;
-							nn.position.z+=tileStep*i;
-							scene.add(nn);
-							ff.receiveShadow = true;
-							ff.position.x+=tileStep*j;
-							ff.position.z+=tileStep*i;
-							scene.add(ff);
+							const copy = lod.clone();
+							copy.receiveShadow = true;
+							copy.position.x+=tileStep*j;
+							copy.position.z+=tileStep*i;
+							scene.add(copy);
 					}}
 
 				} );
 				loader.load( 'theater.glb', function ( gltf ) {
+					const lod = new THREE.LOD();
+                	var lod00 = gltf.scene.getObjectByName('theater_out');
+                	var lod01 = new THREE.Object3D();
+                	lod.addLevel( lod00, 2000 );
+                	lod.addLevel( lod01, 2500 );
 					for (let i =tileXmin; i <= tileXmax; i++) {
 						for (let j =tileZmin; j <= tileZmax; j++) {
-							var nn = new THREE.InstancedMesh( gltf.scene.getObjectByName('theater_out').geometry, gltf.scene.getObjectByName('theater_out').material, 10)
-							nn.receiveShadow = true;
-							nn.position.x+=tileStep*j;
-							nn.position.z+=tileStep*i;
-							scene.add(nn);
+							const copy = lod.clone();
+							copy.receiveShadow = true;
+							copy.position.x+=tileStep*j;
+							copy.position.z+=tileStep*i;
+							scene.add(copy);
 					}}
 				} );
 				loader.load( 'station01.glb', function ( gltf ) {
@@ -740,90 +776,6 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 
 					scene.add( gltf.scene );
 				} );
-            }
-
-        
-
-
-            function handleKeyDown(event){
-
-                let keyCode = event.keyCode;
-
-                switch(keyCode){
-
-                    case 87: //W: FORWARD
-                        moveDirection.forward = 1
-                        break;
-                        
-                    case 83: //S: BACK
-                        moveDirection.back = 1
-                        break;
-                        
-                    case 65: //A: LEFT
-                        moveDirection.left = 1
-                        break;
-                        
-                    case 68: //D: RIGHT
-                        moveDirection.right = 1
-                        break;
-
-                    case 38: //↑: FORWARD
-                        kMoveDirection.forward = 1
-                        break;
-                        
-                    case 40: //↓: BACK
-                        kMoveDirection.back = 1
-                        break;
-                        
-                    case 37: //←: LEFT
-                        kMoveDirection.left = 1
-                        break;
-                        
-                    case 39: //→: RIGHT
-                        kMoveDirection.right = 1
-                        break;
-                        
-                }
-            }
-            
-            
-            function handleKeyUp(event){
-                let keyCode = event.keyCode;
-
-                switch(keyCode){
-                    case 87: //FORWARD
-                        moveDirection.forward = 0
-                        break;
-                        
-                    case 83: //BACK
-                        moveDirection.back = 0
-                        break;
-                        
-                    case 65: //LEFT
-                        moveDirection.left = 0
-                        break;
-                        
-                    case 68: //RIGHT
-                        moveDirection.right = 0
-                        break;
-
-                    case 38: //↑: FORWARD
-                        kMoveDirection.forward = 0
-                        break;
-                        
-                    case 40: //↓: BACK
-                        kMoveDirection.back = 0
-                        break;
-                        
-                    case 37: //←: LEFT
-                        kMoveDirection.left = 0
-                        break;
-                        
-                    case 39: //→: RIGHT
-                        kMoveDirection.right = 0
-                        break;
-                }
-
             }
 
 
@@ -889,7 +841,7 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 
 				//mouse.y = -(event.targetTouches[0].pageY / window.innerHeight) * 2 + 1;
             	
-                let scalingFactor = 6;
+                let scalingFactor = 5;
 
                 moveX +=  kMoveDirection.right - kMoveDirection.left;
                 moveZ +=  kMoveDirection.back - kMoveDirection.forward;
@@ -900,10 +852,10 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
                 //if(moveZ == 0) return;
 
                 var vector = new THREE.Vector3()
-                camera.getWorldDirection( vector );
+                ballHolder.getWorldDirection( vector );
                 //console.log(vector.z)
                 
-                let resultantImpulse = new Ammo.btVector3( -vector.x*moveZ, 0, -vector.z*moveZ )
+                let resultantImpulse = new Ammo.btVector3( vector.x*moveZ, 0, vector.z*moveZ )
                 resultantImpulse.op_mul(scalingFactor);
 
                 let physicsBody = ballObject.userData.physicsBody;
@@ -923,7 +875,7 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
                 smoothZ.push(vector.dot(side)*len);
                 smoothX.push(test.y());
                 hover.rotation.x = (smoothX.reduce((a,b) => (a+b)) / smoothX.length)*0.005
-                hover.rotation.z = (smoothZ.reduce((a,b) => (a+b)) / smoothZ.length)*0.4;
+                hover.rotation.z = -(smoothZ.reduce((a,b) => (a+b)) / smoothZ.length)*0.4;
                 	
                 //console.log(smooth.reduce((a,b) => (a+b)) / smooth.length);
                 smoothX.shift();
@@ -984,9 +936,12 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
                 //sc02.children[0].children[0].rotation.y +=deltaTime*0.3;
                 //sc03.children[0].children[0].rotation.y +=deltaTime*0.3;
                 moveBall();
+                cameraHolder.rotation.y = ctrl.rot.y*2;
+                //console.log(ctrl.rot)
                 ctrl.update();
                 moveX = ctrl.velocity.x*1.5;
                 moveZ = ctrl.velocity.z*1.5;
+
                 updatePhysics( deltaTime );
                 renderer.clear();
 				renderer.render( scene, camera );
