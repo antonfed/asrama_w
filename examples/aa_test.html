@@ -75,7 +75,7 @@
 			const terrainDepth = 512;
 			const terrainHalfWidth = terrainWidth / 2;
 			const terrainHalfDepth = terrainDepth / 2;
-			const terrainMaxHeight = 150;
+			const terrainMaxHeight = 180;
 			const terrainMinHeight = 0;
 
 			let heightData = null;
@@ -352,7 +352,7 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
         		for(var i = 0; i<pix.length; i +=4) {
          			var all = pix[i]+pix[i+1]+pix[i+2];
 
-            		data[j++] = all/(12.0*scale)*3.5
+            		data[j++] = all/(12.0*scale)*3.65
             		
         			}
         			heightData = data;
