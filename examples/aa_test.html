@@ -7,8 +7,7 @@
     	<link rel="stylesheet" href="css/main.css">
     	<link type="text/css" rel="stylesheet" href="main.css">
         <style>
-        	.ui {
-    		position: absolute;
+        	.ui {    		
     		top: 100px;
 			}
 			.app
@@ -39,6 +38,9 @@
     </head>
     <body>
     	<progress id="myBar" class="ui" id="loading" value="0" max="100">50%</progress>
+    	<progress id="s1" class="ui" id="loading" value="0" max="100">50%</progress>
+    	<progress id="s2" class="ui" id="loading" value="0" max="100">50%</progress>
+    	<progress id="s3" class="ui" id="loading" value="0" max="100">50%</progress>
     	<div id="overlay">
 			<button id="startButton" style="display: none;" class="ui">Play</button>
 		</div>
@@ -123,11 +125,15 @@
 			let animPolesTexture;
 
 			let sc01,sc02,sc03
-			let tileXmin = -1;
-			let tileXmax = 1;
-			let tileZmin = -1;
-			let tileZmax = 1;
+			let tileXmin = -2;
+			let tileXmax = 2;
+			let tileZmin = -2;
+			let tileZmax = 2;
 			let tileStep = -3001.5;
+
+			let musicLoad = 3;
+			let geoLoad = 1;
+			let sound1,sound2,sound3;
 
 // vertex shader
 THREE.ShaderChunk.fog_pars_vertex += `
@@ -165,6 +171,7 @@ document.getElementById("startButton").style.display = "none";
 			//const viewer = document.getElementById( 'viewer' );
 
 			const manager = new THREE.LoadingManager();
+
 			manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
 			
 
@@ -176,15 +183,14 @@ document.getElementById("startButton").style.display = "none";
 			manager.onLoad = function ( ) {
 
 			console.log( 'Loading complete!');
-			document.getElementById("startButton").style.display = "block";
-			const startButton = document.getElementById( 'startButton' );
-			startButton.addEventListener( 'click', prestart );
+			geoLoad = 0;
+			if(musicLoad==0&&geoLoad==0){ready()};
 
 			};
 
 			manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
 
-
+			
 			var elem = document.getElementById("myBar");
 			elem.value = itemsLoaded/itemsTotal*100;
 			console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
@@ -194,21 +200,32 @@ document.getElementById("startButton").style.display = "none";
 
 			
             
-            
+            function ready()
+            	{
+            		document.getElementById("startButton").style.display = "block";
+					const startButton = document.getElementById( 'startButton' );
+					startButton.addEventListener( 'click', prestart );
+            	}
 
             function prestart (){
             	const overlay = document.getElementById( 'overlay' );
             	const myBar = document.getElementById( 'myBar' );
+            	document.getElementById( 's1' ).remove();
+            	document.getElementById( 's2' ).remove();
+            	document.getElementById( 's3' ).remove();
 				overlay.remove();
 				myBar.remove();
 
 
-            	setupMusic();
+            	
 
             	width = window.innerWidth
     			height = window.innerHeight
             	addControls();
             	renderFrame();
+            	sound1.play()
+            	sound2.play()
+            	sound3.play()
             	
             	
             }
@@ -238,48 +255,15 @@ document.getElementById("startButton").style.display = "none";
 
             function start (){
 
-                tmpTrans = new Ammo.btTransform();
-                ammoTmpPos = new Ammo.btVector3();
-                ammoTmpQuat = new Ammo.btQuaternion();
-
-
-
-                camera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 10000 );
-                
-				camera.position.set( 0, 10, 30 );
-				camera.rotation.set( -0.1, 0, 0 );
-				cameraHolder.add(camera);
-                ballHolder.add(cameraHolder);
-
-                loader = new GLTFLoader(manager).setPath( 'models/gltf/' );
-                loader.load( 'hover.glb', function ( gltf ) {
-					gltf.scene.traverse( function( node ) {
-        				if ( node.isMesh ) { node.castShadow = true; }
-    				} );
-					hover.add( gltf.scene );
-					ballHolder.add( hover );
-				} );	
-
-               
-                setupPhysicsWorld();
+            	loader = new GLTFLoader(manager).setPath( 'models/gltf/' );
                 
 
-                
-                getHeightData();
-                
-
-                
-				
-
-                
-
-				
-
-				//controls = new OrbitControls( camera, renderer.domElement );
+                setupPhysicsWorld();               
+				getHeightData();
 				setupGraphics();
-				createBall();
-				//prestart()
-                //setupEventHandlers();        
+				setupMusic();
+                createBall();
+      
 	            
 	            }
 
@@ -299,6 +283,39 @@ document.getElementById("startButton").style.display = "none";
 							const groundMotionState = new Ammo.btDefaultMotionState( groundTransform );
 							const groundBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass, groundMotionState, groundShape, groundLocalInertia ) );
 							physicsWorld.addRigidBody( groundBody );
+				}};
+				for (let i =0; i <= 1; i+=1) {
+					for (let j =-1; j <= 1; j+=2) {
+						let bordersShape;
+						let geometry;
+						let wall_len = 14000;
+						let wall_th = 50;
+						let wall_x = i*j*7000;
+						let wall_z = (1-i)*j*7000;
+						if(i==0){bordersShape = new Ammo.btBoxShape(new Ammo.btVector3(wall_len,500,wall_th));
+						geometry = new THREE.BoxGeometry(wall_len,200,wall_th,wall_len/100,1,1);
+						}
+						if(i!=0){bordersShape = new Ammo.btBoxShape(new Ammo.btVector3(wall_th,500,wall_len));
+						geometry = new THREE.BoxGeometry(wall_th,200,wall_len,1,1,wall_len/100);
+						}
+						console.log(i)						
+						
+						const material = new THREE.MeshBasicMaterial( {color: 0x00ff00,} );
+						material.wireframe = true;
+						const cube = new THREE.Mesh( geometry, material );
+						cube.position.x =wall_x;
+						cube.position.z =wall_z;
+						cube.position.y =100;
+						scene.add( cube );	
+		                bordersShape.setMargin( 0.05 );
+						const bordersTransform = new Ammo.btTransform();
+						bordersTransform.setIdentity();
+						bordersTransform.setOrigin(new Ammo.btVector3(wall_x,0,wall_z));
+						const bordersMass = 0;
+						const bordersLocalInertia = new Ammo.btVector3( 0, 0, 0 );
+						const bordersMotionState = new Ammo.btDefaultMotionState( bordersTransform );
+						const bordersBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( bordersMass, bordersMotionState, bordersShape, bordersLocalInertia ) );
+						physicsWorld.addRigidBody( bordersBody );
 				}};
 				
 				
@@ -427,6 +444,10 @@ document.getElementById("startButton").style.display = "none";
 
             function setupPhysicsWorld(){
 
+            	tmpTrans = new Ammo.btTransform();
+                ammoTmpPos = new Ammo.btVector3();
+                ammoTmpQuat = new Ammo.btQuaternion();
+
                 let collisionConfiguration  = new Ammo.btDefaultCollisionConfiguration(),
                     dispatcher              = new Ammo.btCollisionDispatcher(collisionConfiguration),
                     overlappingPairCache    = new Ammo.btDbvtBroadphase(),
@@ -449,44 +470,80 @@ document.getElementById("startButton").style.display = "none";
 
 
 
-            	const mesh1 = new THREE.Mesh( sphere, material1 );
-				mesh1.position.set( 0, 0, 0 );
-				scene.add( mesh1 );
+            	
 
-				const sound1 = new THREE.PositionalAudio( listener );
-				song1 = document.getElementById( 'song1' );
-				sound1.setMediaElementSource( song1 );
+				sound1 = new THREE.PositionalAudio( listener );
+
+				sound2 = new THREE.PositionalAudio( listener );
+
+				sound3 = new THREE.PositionalAudio( listener );
+
+				const loaderMusic = new THREE.AudioLoader(manager);
+				loaderMusic.load('sounds/radio01_red.mp3',
+					function ( audioBuffer ) {						
+						sound1.setBuffer( audioBuffer );
+						musicLoad-=1;
+						if(musicLoad==0&&geoLoad==0){ready()};
+						console.log( 'song1 play' );
+						var elem = document.getElementById("s1");
+						elem.value = 100;
+						},
+					function ( xhr ) {
+						
+					},
+					function ( err ) {console.log( 'An error happened' );}
+				);
+				loaderMusic.load('sounds/radio02_b.mp3',
+					function ( audioBuffer ) {						
+						console.log( 'song2 play' );
+						sound2.setBuffer( audioBuffer );
+						musicLoad-=1;
+						if(musicLoad==0&&geoLoad==0){ready()};
+						console.log( 'song2 play' );
+						var elem = document.getElementById("s2");
+						elem.value = 100;
+						},
+					function ( xhr ) {
+
+					},
+					function ( err ) {console.log( 'An error happened' );}
+				);
+				loaderMusic.load('sounds/radio03.mp3',
+					function ( audioBuffer ) {
+						console.log( 'song3 play' );						
+						sound3.setBuffer( audioBuffer );
+						musicLoad-=1;
+						if(musicLoad==0&&geoLoad==0){ready()};
+						var elem = document.getElementById("s3");
+						elem.value = 100;
+						},
+					function ( xhr ) {
+
+					},
+					function ( err ) {console.log( 'An error happened' );}
+				);
+
+				//song1 = document.getElementById( 'song1' );
+				//sound1.setMediaElementSource( song1 );
 				sound1.setRefDistance( 40 );
+				sound2.setRefDistance( 40 );
+				sound3.setRefDistance( 40 );
 				//sound1.setMaxDistance(100);
 				//sound1.startTime = 1000.0;
-				song1.play();
-				mesh1.add( sound1 );
+				//song1.play();
 				
+				const mesh1 = new THREE.Mesh( sphere, material1 );
+				mesh1.position.set( 0, 0, 0 );				
 				const mesh2 = new THREE.Mesh( sphere, material1 );
 				mesh2.position.set( -3000, 0, 0 );
-				scene.add( mesh2 );
-
-				const sound2 = new THREE.PositionalAudio( listener );
-				song2 = document.getElementById( 'song2' );
-				sound2.setMediaElementSource( song2 );
-				sound2.setRefDistance( 40 );
-				//sound2.setMaxDistance(100);
-				//sound2.startTime = -20000.0;
-				song2.play();
-				mesh2.add( sound2 );
-
 				const mesh3 = new THREE.Mesh( sphere, material1 );
 				mesh3.position.set( -3000, 0, -3000 );
-				scene.add( mesh3 );
-
-				const sound3 = new THREE.PositionalAudio( listener );
-				song3 = document.getElementById( 'song3' );
-				sound3.setMediaElementSource( song3 );
-				//sound3.setMaxDistance(10);
-				sound3.setRefDistance( 40 );
-				//sound3.startTime = -20000.0;
-				song3.play();
+				mesh1.add( sound1 );
+				mesh2.add( sound2 );
 				mesh3.add( sound3 );
+				scene.add( mesh2 );
+				scene.add( mesh3 );
+				scene.add( mesh1 );								
             }
 
             //
@@ -515,21 +572,16 @@ document.getElementById("startButton").style.display = "none";
                 //scene.background = new THREE.Color( 0x5e7bbf );
                 scene_no_fog.fog = new THREE.FogExp2( 0xf7e0c8, 0.0002 );
                 scene.fog = new THREE.FogExp2( 0xf7e0c8, 0.003 );
-                //scene_no_fog.fog = new THREE.FogExp2( 0xebf7ff, 0.0002 );
-                //scene.fog = new THREE.FogExp2( 0xebf7ff, 0.0025 );
-                //scene.fog = new THREE.FogExp2( 0x7dceff, 0.003 );
-                //scene_no_fog.fog = new THREE.FogExp2( 0xefd1b5, 0.0002 );
-                //create camera
-                //camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.2, 5000 );
-                //camera.position.set( 0, 30, 70 );
-                //camera.lookAt(new THREE.Vector3(0, 0, 0));
+                
+                camera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 10000 );
+                
+				camera.position.set( 0, 10, 30 );
+				camera.rotation.set( -0.1, 0, 0 );
+				cameraHolder.add(camera);
+                ballHolder.add(cameraHolder);
 
-                //Add hemisphere light
-                //let hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.1 );
-                //hemiLight.color.setHSL( 0.6, 0.6, 0.6 );
-                //hemiLight.groundColor.setHSL( 0.1, 1, 0.4 );
-                //hemiLight.position.set( 0, 50, 0 );
-                //scene.add( hemiLight );
+                
+                	
 
                 //Add directional light
                 dirLight = new THREE.DirectionalLight( 0xffc68a , 1);
@@ -601,7 +653,7 @@ document.getElementById("startButton").style.display = "none";
                 //
                 //
 
-				scene.add(ballHolder);
+				
 
 				const loader_env = new THREE.CubeTextureLoader();
 				loader_env.setPath( 'textures/cube/pisa/' );
@@ -647,6 +699,16 @@ document.getElementById("startButton").style.display = "none";
     						shininess: 30,
     						roughness: 0.2
 						} );                
+
+				loader.load( 'hover.glb', function ( gltf ) {
+					gltf.scene.traverse( function( node ) {
+        				if ( node.isMesh ) { node.castShadow = true; }
+    				} );
+					hover.add( gltf.scene );
+					ballHolder.add( hover );
+				} );
+
+				scene.add(ballHolder);
 
                 loader.load( 'sky.glb', function ( gltf ) {
 					gltf.scene.position.y = -300;
