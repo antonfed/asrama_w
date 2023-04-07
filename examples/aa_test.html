@@ -473,13 +473,14 @@ document.getElementById("startButton").style.display = "none";
             	
 
 				sound1 = new THREE.PositionalAudio( listener );
-
+				sound1.setLoop(true);
 				sound2 = new THREE.PositionalAudio( listener );
-
+				sound2.setLoop(true);
 				sound3 = new THREE.PositionalAudio( listener );
+				sound3.setLoop(true);
 
 				const loaderMusic = new THREE.AudioLoader(manager);
-				loaderMusic.load('sounds/radio01_red.mp3',
+				loaderMusic.load('sounds/radio01_x.mp3',
 					function ( audioBuffer ) {						
 						sound1.setBuffer( audioBuffer );
 						musicLoad-=1;
@@ -493,7 +494,7 @@ document.getElementById("startButton").style.display = "none";
 					},
 					function ( err ) {console.log( 'An error happened' );}
 				);
-				loaderMusic.load('sounds/radio02_b.mp3',
+				loaderMusic.load('sounds/radio02_x.mp3',
 					function ( audioBuffer ) {						
 						console.log( 'song2 play' );
 						sound2.setBuffer( audioBuffer );
