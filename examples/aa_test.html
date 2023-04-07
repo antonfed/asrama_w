@@ -808,6 +808,10 @@ document.getElementById("startButton").style.display = "none";
 					
 					scene.add(sc01);
 				} );
+				loader.load( 'castle.glb', function ( gltf ) {
+					
+					scene.add(gltf.scene);
+				} );
 
 				
 					
