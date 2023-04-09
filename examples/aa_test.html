@@ -32,6 +32,10 @@
 			{
 			display:none;	
 			}
+			.mapButton
+			{
+			display:none;	
+			}
 
 
         </style>
@@ -44,6 +48,9 @@
     	<div id="overlay">
 			<button id="startButton" style="display: none;" class="ui">Play</button>
 		</div>
+		<button id="mapButton" style="display: none; position:absolute; top:30px" >Map</button>
+		<button id="shopButton" style="display: none; position:absolute">Shop</button>
+		
     	
 
     	<audio id="song1" preload="auto" style="display: none">
@@ -73,7 +80,7 @@
         	import TouchControls from './js/TouchControls.js'
             //variable declaration section
             //variable declaration section
-            let physicsWorld, scene, camera, renderer, rigidBodies = [], tmpTrans = null , clock
+            let physicsWorld, renderer, rigidBodies = [], tmpTrans = null , clock
             let ballObject = null, moveDirection = { left: 0, right: 0, forward: 0, back: 0 }
             let ball;
             let kObject = null, kMoveDirection = { left: 0, right: 0, forward: 0, back: 0 }, tmpPos = new THREE.Vector3(), tmpQuat = new THREE.Quaternion();
@@ -134,7 +141,18 @@
 			let musicLoad = 3;
 			let geoLoad = 1;
 			let sound1,sound2,sound3;
+			
+			let mapCamera;
+			let playerCamera
+			let activeCamera;
+			let shopCamera;
 
+			let mapScene;
+			let playerScene;
+			let activeScene;
+			let shopScene;
+
+			let mixer
 // vertex shader
 THREE.ShaderChunk.fog_pars_vertex += `
 #ifdef USE_FOG
@@ -203,8 +221,13 @@ document.getElementById("startButton").style.display = "none";
             function ready()
             	{
             		document.getElementById("startButton").style.display = "block";
+					
 					const startButton = document.getElementById( 'startButton' );
 					startButton.addEventListener( 'click', prestart );
+					const mapButton = document.getElementById( 'mapButton' );
+					mapButton.addEventListener( 'click', mapChange );
+					const shopButton = document.getElementById( 'shopButton' );
+					shopButton.addEventListener( 'click', shopChange );
             	}
 
             function prestart (){
@@ -222,6 +245,8 @@ document.getElementById("startButton").style.display = "none";
             	width = window.innerWidth
     			height = window.innerHeight
             	addControls();
+            	document.getElementById("mapButton").style.display = "block";
+            	document.getElementById("shopButton").style.display = "block";
             	renderFrame();
             	sound1.play()
             	sound2.play()
@@ -263,6 +288,8 @@ document.getElementById("startButton").style.display = "none";
 				setupGraphics();
 				setupMusic();
                 createBall();
+                createInteractiveBall()
+                
       
 	            
 	            }
@@ -306,7 +333,7 @@ document.getElementById("startButton").style.display = "none";
 						cube.position.x =wall_x;
 						cube.position.z =wall_z;
 						cube.position.y =100;
-						scene.add( cube );	
+						playerScene.add( cube );	
 		                bordersShape.setMargin( 0.05 );
 						const bordersTransform = new Ammo.btTransform();
 						bordersTransform.setIdentity();
@@ -461,7 +488,7 @@ document.getElementById("startButton").style.display = "none";
 
             function setupMusic(){
             	const listener = new THREE.AudioListener();
-				camera.add( listener );
+				playerCamera.add( listener );
 
 				//SPHERE
 
@@ -551,9 +578,9 @@ document.getElementById("startButton").style.display = "none";
 				mesh1.add( sound1 );
 				mesh2.add( sound2 );
 				mesh3.add( sound3 );
-				scene.add( mesh2 );
-				scene.add( mesh3 );
-				scene.add( mesh1 );								
+				playerScene.add( mesh2 );
+				playerScene.add( mesh3 );
+				playerScene.add( mesh1 );								
             }
 
             //
@@ -571,23 +598,34 @@ document.getElementById("startButton").style.display = "none";
                 clock = new THREE.Clock();
 
                 //create the scene
-                scene = new THREE.Scene();
+                playerScene = new THREE.Scene();
+                mapScene = new THREE.Scene();
+                activeScene = playerScene;
                 scene_no_fog = new THREE.Scene();
-                scene.background = new THREE.Color( 0xbfd1e5 );
+                playerScene.background = new THREE.Color( 0xbfd1e5 );
+                mapScene.background = new THREE.Color( 0xffddc4 );
                 var amb =  new THREE.AmbientLight( 0xf0f0f0 )
                 amb.intensity = 0.5;
-                scene.add(amb);
+                playerScene.add(amb);
                 scene_no_fog.add( new THREE.AmbientLight( 0xf0f0f0 ) );
 
                 //scene.background = new THREE.Color( 0x5e7bbf );
                 scene_no_fog.fog = new THREE.FogExp2( 0xf7e0c8, 0.0002 );
-                scene.fog = new THREE.FogExp2( 0xf7e0c8, 0.003 );
+                playerScene.fog = new THREE.FogExp2( 0xf7e0c8, 0.003 );
                 
-                camera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 10000 );
+                playerCamera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 10000 );
+                mapCamera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 10000 );
+                shopCamera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+                activeCamera = playerCamera;
+               
+                shopCamera.position.set( 60, 80, -80);
+
+                mapCamera.position.set( 0, 2000, 30 );
+                mapCamera.rotation.set( -3.14/2, 0 , 0 );
                 
-				camera.position.set( 0, 10, 30 );
-				camera.rotation.set( -0.1, 0, 0 );
-				cameraHolder.add(camera);
+				playerCamera.position.set( 0, 10, 30 );
+				playerCamera.rotation.set( -0.1, 0, 0 );
+				cameraHolder.add(playerCamera);
                 ballHolder.add(cameraHolder);
 
                 
@@ -598,7 +636,7 @@ document.getElementById("startButton").style.display = "none";
                 //dirLight.color.setHSL( 0.1, 1, 0.95 );
                 dirLight.position.set( -1, 1.75, 1 );
                 dirLight.position.multiplyScalar( 100 );
-                scene.add( dirLight );
+                playerScene.add( dirLight );
 
                 dirLight.castShadow = true;
                 dirLight.intensity = 3;
@@ -710,21 +748,36 @@ document.getElementById("startButton").style.display = "none";
     						roughness: 0.2
 						} );                
 
+				loader.load( 'ha.glb', function ( gltf ) {
+					gltf.scene.traverse( function( node ) {
+        				if ( node.isMesh ) { node.castShadow = true; }
+    				} );
+					
+					mixer = new THREE.AnimationMixer( gltf.scene );
+					var action = mixer.clipAction( gltf.animations[ 0 ] );
+					//console.log(gltf.animations[ 0 ])
+					action.play();
+					gltf.scene.rotation.y = 3.14;
+					hover.add( gltf.scene );
+					hover.scale.set(5,5,5); 
+					ballHolder.add( hover );
+				} );
 				loader.load( 'hover.glb', function ( gltf ) {
 					gltf.scene.traverse( function( node ) {
         				if ( node.isMesh ) { node.castShadow = true; }
     				} );
 					hover.add( gltf.scene );
+
 					ballHolder.add( hover );
 				} );
 
-				scene.add(ballHolder);
+				playerScene.add(ballHolder);
 
                 loader.load( 'sky.glb', function ( gltf ) {
 					gltf.scene.position.y = -300;
 					//gltf.scene.getObjectByName('sky_out').blending(THREE.AdditiveBlending);
 					sky = gltf.scene;
-					camera.add( gltf.scene );
+					playerCamera.add( gltf.scene );
 				} );
                 loader.load( 'output.glb', function ( gltf ) {
                 	gltf.scene.getObjectByName('land_out').material.lightMap = gltf.scene.getObjectByName('land_out').material.map;
@@ -748,7 +801,7 @@ document.getElementById("startButton").style.display = "none";
 							copy.receiveShadow = true;
 							copy.position.x+=tileStep*j;
 							copy.position.z+=tileStep*i;
-							scene.add(copy);
+							playerScene.add(copy.clone());
 					}}
 					
                 	gltf.scene.traverse( function( node ) {
@@ -769,7 +822,7 @@ document.getElementById("startButton").style.display = "none";
 							copy.receiveShadow = true;
 							copy.position.x+=tileStep*j;
 							copy.position.z+=tileStep*i;
-							scene.add(copy);
+							playerScene.add(copy);
 					}}
 				} );
 
@@ -787,7 +840,7 @@ document.getElementById("startButton").style.display = "none";
 							copy.receiveShadow = true;
 							copy.position.x+=tileStep*j;
 							copy.position.z+=tileStep*i;
-							scene.add(copy);
+							playerScene.add(copy);
 					}}
 
 				} );
@@ -803,7 +856,7 @@ document.getElementById("startButton").style.display = "none";
 							copy.receiveShadow = true;
 							copy.position.x+=tileStep*j;
 							copy.position.z+=tileStep*i;
-							scene.add(copy);
+							playerScene.add(copy);
 					}}
 				} );
 				loader.load( 'station01.glb', function ( gltf ) {
@@ -815,11 +868,12 @@ document.getElementById("startButton").style.display = "none";
 					gltf.scene.getObjectByName('station01_tube_out').material.transparent = true;
 					sc01 = gltf.scene;
 					
-					scene.add(sc01);
+					playerScene.add(sc01);
+					mapScene.add(sc01.clone());
 				} );
 				loader.load( 'castle.glb', function ( gltf ) {
 					
-					scene.add(gltf.scene);
+					playerScene.add(gltf.scene);
 				} );
 
 				
@@ -831,7 +885,8 @@ document.getElementById("startButton").style.display = "none";
 					gltf.scene.getObjectByName('station02_tube_out').material.alphaMap = alphaMap;
 					gltf.scene.getObjectByName('station02_tube_out').material.transparent = true;
 					sc02 = gltf.scene;
-					scene.add( sc02 );
+					playerScene.add( sc02 );
+					mapScene.add(sc02.clone());
 				} );
 				loader.load( 'station03.glb', function ( gltf ) {
 
@@ -841,7 +896,8 @@ document.getElementById("startButton").style.display = "none";
 					gltf.scene.getObjectByName('station03_out').material = sphereMaterial;
 					
 					sc03 = gltf.scene;
-					scene.add( sc03 );
+					playerScene.add( sc03 );
+					mapScene.add(sc03.clone());
 				} );
 				loader.load( 'station04.glb', function ( gltf ) {
 
@@ -850,8 +906,59 @@ document.getElementById("startButton").style.display = "none";
 
 					gltf.scene.getObjectByName('station04_out').material = sphereMaterial;
 
-					scene.add( gltf.scene );
+					playerScene.add( gltf.scene );
 				} );
+            }
+            function createInteractiveBall(){
+                
+                let iball,iballObject;
+                let pos = {x: 200, y: 200, z: 200};
+                let radius = 20;
+                let quat = {x: 0, y: 0, z: 0, w: 1};
+                let mass = 0.1;
+
+                //threeJS Section
+                iball = iballObject = new THREE.Mesh(new THREE.SphereGeometry(radius-3), new THREE.MeshPhongMaterial({color: 0xff0505}));
+                
+                iball.position.set(pos.x, pos.y, pos.z);
+                
+                iball.castShadow = true;
+                iball.receiveShadow = true;
+
+                playerScene.add(iball);
+
+
+                //Ammojs Section
+                let transform = new Ammo.btTransform();
+                transform.setIdentity();
+                transform.setOrigin( new Ammo.btVector3( pos.x, pos.y, pos.z ) );
+                transform.setRotation( new Ammo.btQuaternion( quat.x, quat.y, quat.z, quat.w ) );
+                let motionState = new Ammo.btDefaultMotionState( transform );
+
+                let colShape = new Ammo.btSphereShape( radius );
+                colShape.setMargin( 0.05 );
+
+                let localInertia = new Ammo.btVector3( 0, 0, 0 );
+                colShape.calculateLocalInertia( mass, localInertia );
+
+                let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
+                let body = new Ammo.btRigidBody( rbInfo );
+                //body.fixedTimeStep = 1 / 500;
+                //console.log(body);
+                //body.setFriction(2000000);
+                //body.setRollingFriction(20000000);
+                //body.setRollingFriction(20000000);
+                //body.setRestitution(20000000);
+
+                body.setActivationState( STATE.DISABLE_DEACTIVATION );
+                //body.setCcdMotionThreshold(0.03);
+                //body.setCcdSweptSphereRadius(0.2)
+
+
+                physicsWorld.addRigidBody( body );
+                
+                iball.userData.physicsBody = body;
+                rigidBodies.push(iball);
             }
 
 
@@ -1018,11 +1125,17 @@ document.getElementById("startButton").style.display = "none";
                 moveX = ctrl.velocity.x*1.5;
                 moveZ = ctrl.velocity.z*1.5;
 
+                //const campo
+                playerCamera.getWorldPosition(mapCamera.position);
+                mapCamera.position.y = 4000;
+
+                mixer.update( deltaTime*0.65 );
+
                 updatePhysics( deltaTime );
                 renderer.clear();
-				renderer.render( scene, camera );
+				renderer.render( activeScene, activeCamera );
 				renderer.clearDepth();
-				renderer.render( scene_no_fog, camera );
+				renderer.render( scene_no_fog, activeCamera );
 
                 requestAnimationFrame( renderFrame );
 
@@ -1033,6 +1146,44 @@ document.getElementById("startButton").style.display = "none";
                 window.addEventListener( 'keydown', handleKeyDown, false);
                 window.addEventListener( 'keyup', handleKeyUp, false);
                
+            }
+
+            function mapChange(){
+            	const cameraSwith = activeCamera;
+            	console.log("test")
+            	if(cameraSwith==mapCamera){
+            		activeScene = playerScene;
+            		document.getElementById("shopButton").style.display = "block";
+            		document.getElementsByClassName("movement-pad")[0].style.display = "block";
+            		activeCamera = playerCamera;
+            		console.log("testw")
+            	};
+            	if(cameraSwith==playerCamera){
+            		activeScene = mapScene;
+            		document.getElementById("shopButton").style.display = "none";
+            		document.getElementsByClassName("movement-pad")[0].style.display = "none";
+            		activeCamera = mapCamera;
+            		console.log("testq")
+            	};  
+            }
+
+            function shopChange(){
+            	const cameraSwith = activeCamera;
+            	console.log("test")
+            	if(cameraSwith==shopCamera){
+            		//activeScene = playerScene;
+            		document.getElementById("mapButton").style.display = "block";
+            		document.getElementsByClassName("movement-pad")[0].style.display = "block";
+            		activeCamera = playerCamera;
+            		console.log("testw")
+            	};
+            	if(cameraSwith==playerCamera){
+            		//activeScene = mapScene;
+            		document.getElementById("mapButton").style.display = "none";
+            		document.getElementsByClassName("movement-pad")[0].style.display = "none";
+            		activeCamera = shopCamera;
+            		console.log("testq")
+            	};  
             }
 
 
