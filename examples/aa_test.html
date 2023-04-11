@@ -309,7 +309,7 @@ document.getElementById("startButton").style.display = "none";
 			        var shape = new Ammo.btBvhTriangleMeshShape(mesh, true, true);
 			        return shape;
 			    }
-			function col_mesh(geometry){
+			function col_mesh(object){
 
 				let triangle, triangle_mesh = new Ammo.btTriangleMesh();
 
@@ -319,7 +319,7 @@ document.getElementById("startButton").style.display = "none";
 	            let vectC = new Ammo.btVector3(0, 0, 0);
 
 	            //retrieve vertices positions from object
-	            let verticesPos = geometry.getAttribute('position').array;
+	            let verticesPos = object.geometry.getAttribute('position').array;
 	            let triangles = [];
 	            for (let i = 0; i < verticesPos.length; i += 3) {
 	                triangles.push({
@@ -366,22 +366,28 @@ document.getElementById("startButton").style.display = "none";
 
             	var collisionShape;
             	loader.load( 'wagon_collision.glb', function ( gltf ) {
-					console.log("collisionShape");
-					collisionShape = col_mesh(gltf.scene.getObjectByName('col_mesh').geometry);
-					console.log(collisionShape); 
-				
+					gltf.scene.traverse( function( node ) {
+        				if ( node.isMesh ) {
+        					node.updateMatrix();
+        					node.updateWorldMatrix(true,false);
+		        			collisionShape = col_mesh(node);
+							console.log(collisionShape); 
+						
 
-					collisionShape.setMargin(3);
-					console.log(collisionShape);
-	            	const colTransform = new Ammo.btTransform();
-					colTransform.setIdentity();
+							collisionShape.setMargin(3);
+							console.log(collisionShape);
+			            	const colTransform = new Ammo.btTransform();
+							colTransform.setIdentity();
+							
+							colTransform.setOrigin( new Ammo.btVector3( 0, 0, 0 ) );
+							const colMass = 0;
+							const colLocalInertia = new Ammo.btVector3( 0, 0, 0 );
+							const colMotionState = new Ammo.btDefaultMotionState( colTransform );
+							const colBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( colMass, colMotionState, collisionShape, colLocalInertia ) );
+							physicsWorld.addRigidBody( colBody );
+						}
+    				} );
 					
-					colTransform.setOrigin( new Ammo.btVector3( 0, 0, 0 ) );
-					const colMass = 0;
-					const colLocalInertia = new Ammo.btVector3( 0, 0, 0 );
-					const colMotionState = new Ammo.btDefaultMotionState( colTransform );
-					const colBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( colMass, colMotionState, collisionShape, colLocalInertia ) );
-					physicsWorld.addRigidBody( colBody );
 				} );
 
 	            const groundShape = createTerrainShape();
@@ -870,6 +876,7 @@ document.getElementById("startButton").style.display = "none";
 					playerCamera.add( gltf.scene );
 				} );
                 loader.load( 'output.glb', function ( gltf ) {
+                	var mainTile = gltf.scene.getObjectByName('land_out');
                 	gltf.scene.getObjectByName('land_out').material.lightMap = gltf.scene.getObjectByName('land_out').material.map;
                 	gltf.scene.getObjectByName('land_out').material.map = land_map;
                 	gltf.scene.getObjectByName('land_out').material.lightMapIntensity = 70;
@@ -877,22 +884,35 @@ document.getElementById("startButton").style.display = "none";
                 	gltf.scene.getObjectByName('land_out').material.bumpScale =12;
                 	gltf.scene.getObjectByName('land_out').material.roughness =1;
                 	gltf.scene.getObjectByName('land_out').material.metalness =0;
-                	
-                	const lod = new THREE.LOD();
-                	//var lod00 = new THREE.InstancedMesh( gltf.scene.getObjectByName('land_out').geometry, gltf.scene.getObjectByName('land_out').material, 10)
-                	var lod00 = gltf.scene.getObjectByName('land_out');
-                	var lod01 = new THREE.Object3D();
-                	lod.addLevel( lod00, 2000 );
-                	lod.addLevel( lod01, 2500 );
+                	//var lod = new THREE.LOD();	
+		            
+                	var station02;
 					for (let i =tileXmin; i <= tileXmax; i++) {
 						for (let j =tileZmin; j <= tileZmax; j++) {
+							
+							//var lod00 = 
+		                	//var lod01 = new THREE.Object3D();
+		                	//lod.addLevel( lod00, 2000 );
+		                	//lod.addLevel( lod01, 2500 );
 
-							const copy = lod.clone();
+
+							var copy = gltf.scene.getObjectByName('land_out').clone();
+							copy.material = gltf.scene.getObjectByName('land_out').material.clone();
+							var mat = copy.material;
+							if(i==0&&j==1){
+								station02 = copy;
+							}
+
 							copy.receiveShadow = true;
 							copy.position.x+=tileStep*j;
 							copy.position.z+=tileStep*i;
-							playerScene.add(copy.clone());
+							playerScene.add(copy);
 					}}
+
+					loader.load( 'station_space02.glb', function ( gltf ) {
+	
+						station02.material.lightMap =  gltf.scene.getObjectByName('land_out_station_space02').material.map;
+					});
 					
                 	gltf.scene.traverse( function( node ) {
         				if ( node.isMesh ) { node.receiveShadow = true; }
@@ -1000,7 +1020,19 @@ document.getElementById("startButton").style.display = "none";
 						console.log(placer.matrixWorld);									
 						gltf.scene.applyMatrix4(place.matrixWorld);
 						playerScene.add(gltf.scene);
-					} );	
+					} );
+					loader.load( 'wagon04_comb.glb', function ( gltf ) {
+						gltf.scene.traverse( function( node ) {
+        					if ( node.isMesh ) { 
+        						node.material.envMap = textureCube;
+        						}
+    					} );
+						const place = placer.getObjectByName('wagon04_pl');
+						place.updateWorldMatrix(true,false);
+						console.log(placer.matrixWorld);									
+						gltf.scene.applyMatrix4(place.matrixWorld);
+						playerScene.add(gltf.scene);
+					} );		
 				} );
 				
 
