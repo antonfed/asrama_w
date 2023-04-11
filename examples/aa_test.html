@@ -295,9 +295,97 @@ document.getElementById("startButton").style.display = "none";
 	            
 	            }
 
-                
+            function createTriangleShapeByBufferGeometry(geometry, scalingFactor) {
+			        var mesh = new Ammo.btTriangleMesh(true, true);
+			        var vertexPositionArray = geometry.attributes.position.array;
+			        for (var i = 0; i < geometry.attributes.position.count/3; i++) {
+			                mesh.addTriangle(
+			                    new Ammo.btVector3(vertexPositionArray[i*9+0]*scalingFactor, vertexPositionArray[i*9+1]*scalingFactor, vertexPositionArray[i*9+2]*scalingFactor ),
+			                    new Ammo.btVector3(vertexPositionArray[i*9+3]*scalingFactor, vertexPositionArray[i*9+4]*scalingFactor, vertexPositionArray[i*9+5]*scalingFactor),
+			                    new Ammo.btVector3(vertexPositionArray[i*9+6]*scalingFactor, vertexPositionArray[i*9+7]*scalingFactor, vertexPositionArray[i*9+8]*scalingFactor),
+			                    false
+			                );
+			        }
+			        var shape = new Ammo.btBvhTriangleMeshShape(mesh, true, true);
+			        return shape;
+			    }
+			function col_mesh(geometry){
+
+				let triangle, triangle_mesh = new Ammo.btTriangleMesh();
+
+	            //declare triangles position vectors
+	            let vectA = new Ammo.btVector3(0, 0, 0);
+	            let vectB = new Ammo.btVector3(0, 0, 0);
+	            let vectC = new Ammo.btVector3(0, 0, 0);
+
+	            //retrieve vertices positions from object
+	            let verticesPos = geometry.getAttribute('position').array;
+	            let triangles = [];
+	            for (let i = 0; i < verticesPos.length; i += 3) {
+	                triangles.push({
+	                    x: verticesPos[i],
+	                    y: verticesPos[i + 1],
+	                    z: verticesPos[i + 2]
+	                })
+	            }
+
+	            //use triangles data to draw ammo shape
+	            for (let i = 0; i < triangles.length - 3; i += 3) {
+
+	                vectA.setX(triangles[i].x);
+	                vectA.setY(triangles[i].y);
+	                vectA.setZ(triangles[i].z);
+
+	                vectB.setX(triangles[i + 1].x);
+	                vectB.setY(triangles[i + 1].y);
+	                vectB.setZ(triangles[i + 1].z);
+
+	                vectC.setX(triangles[i + 2].x);
+	                vectC.setY(triangles[i + 2].y);
+	                vectC.setZ(triangles[i + 2].z);
+
+	                triangle_mesh.addTriangle(vectA, vectB, vectC, true);
+	            }
+				//Ammo vectors should be destroyed after use to avoid memory leak.
+				Ammo.destroy(vectA);
+	            Ammo.destroy(vectB);
+	            Ammo.destroy(vectC);
+
+				var shape = new Ammo.btBvhTriangleMeshShape(triangle_mesh, true);
+				
+				//var shape = new Ammo.btConvexTriangleMeshShape( triangle_mesh, true);
+				
+				
+				console.log("collisionShape");
+				console.log(shape);
+				return shape
+
+			}
+
             function make_terrain() {
+
+            	var collisionShape;
+            	loader.load( 'wagon_collision.glb', function ( gltf ) {
+					console.log("collisionShape");
+					collisionShape = col_mesh(gltf.scene.getObjectByName('col_mesh').geometry);
+					console.log(collisionShape); 
+				
+
+					collisionShape.setMargin(1);
+					console.log(collisionShape);
+	            	const colTransform = new Ammo.btTransform();
+					colTransform.setIdentity();
+					
+					colTransform.setOrigin( new Ammo.btVector3( 0, 0, 0 ) );
+					const colMass = 0;
+					const colLocalInertia = new Ammo.btVector3( 0, 0, 0 );
+					const colMotionState = new Ammo.btDefaultMotionState( colTransform );
+					const colBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( colMass, colMotionState, collisionShape, colLocalInertia ) );
+					physicsWorld.addRigidBody( colBody );
+				} );
+
 	            const groundShape = createTerrainShape();
+
 
 
 	            for (let i =tileXmin-1; i <= tileXmax+1; i++) {
