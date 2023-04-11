@@ -53,14 +53,6 @@
 		
     	
 
-    	<audio id="song1" preload="auto" style="display: none">
-			<source src="sounds/radio01_red.mp3">
-		</audio>
-		<audio id="song2" preload="auto" style="display: none">
-			<source src="sounds/radio02_b.mp3">
-		<audio id="song3" preload="auto" style="display: none">
-			<source src="sounds/radio03.mp3">
-		</audio>
     	<script src="jsm/libs/ammo.wasm.js"></script>
 
     	<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
@@ -805,15 +797,15 @@ document.getElementById("startButton").style.display = "none";
 
 				var alphaMap = new THREE.TextureLoader().load('textures/c_col.jpg');
 				//var wag03AlphaMap = new THREE.TextureLoader().load('textures/c_col.jpg');
-				var land_light_map = new THREE.TextureLoader().load('textures/land_lightmap_tets.png');
+				//var land_light_map = new THREE.TextureLoader().load('textures/land_lightmap_tets.png');
 				var land_map = new THREE.TextureLoader().load('textures/sand2.jpg');
 				land_map.wrapS = land_map.wrapT = THREE.RepeatWrapping;
-				land_light_map.wrapS = land_light_map.wrapT = THREE.RepeatWrapping;
+				//land_light_map.wrapS = land_light_map.wrapT = THREE.RepeatWrapping;
 
 
 				const land_mat = new THREE.MeshStandardMaterial( { 
     						//lightMap: land_light_map, 
-    						map: land_light_map,
+    						//map: land_light_map,
     						color: 0x000000,
     						//flatShading: true 
     						//lightMapIntensity: 0.5
