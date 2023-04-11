@@ -152,7 +152,8 @@
 			let activeScene;
 			let shopScene;
 
-			let mixer
+			let mixer;
+			let placer;
 // vertex shader
 THREE.ShaderChunk.fog_pars_vertex += `
 #ifdef USE_FOG
@@ -194,13 +195,13 @@ document.getElementById("startButton").style.display = "none";
 			
 
 			
-			console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+			//console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
 
 			};
 
 			manager.onLoad = function ( ) {
 
-			console.log( 'Loading complete!');
+			//console.log( 'Loading complete!');
 			geoLoad = 0;
 			if(musicLoad==0&&geoLoad==0){ready()};
 
@@ -211,7 +212,7 @@ document.getElementById("startButton").style.display = "none";
 			
 			var elem = document.getElementById("myBar");
 			elem.value = itemsLoaded/itemsTotal*100;
-			console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+			//console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
 			};	
 			
 			Ammo().then(start);
@@ -325,7 +326,7 @@ document.getElementById("startButton").style.display = "none";
 						if(i!=0){bordersShape = new Ammo.btBoxShape(new Ammo.btVector3(wall_th,500,wall_len));
 						geometry = new THREE.BoxGeometry(wall_th,200,wall_len,1,1,wall_len/100);
 						}
-						console.log(i)						
+						//console.log(i)						
 						
 						const material = new THREE.MeshBasicMaterial( {color: 0x00ff00,} );
 						material.wireframe = true;
@@ -709,6 +710,7 @@ document.getElementById("startButton").style.display = "none";
 				textureCube.encoding = THREE.sRGBEncoding;
 
 				var alphaMap = new THREE.TextureLoader().load('textures/c_col.jpg');
+				//var wag03AlphaMap = new THREE.TextureLoader().load('textures/c_col.jpg');
 				var land_light_map = new THREE.TextureLoader().load('textures/land_lightmap_tets.png');
 				var land_map = new THREE.TextureLoader().load('textures/sand2.jpg');
 				land_map.wrapS = land_map.wrapT = THREE.RepeatWrapping;
@@ -809,6 +811,7 @@ document.getElementById("startButton").style.display = "none";
     				} );
 					//scene.add( gltf.scene );
 				} );
+				/*
                 loader.load( 'trucks.glb', function ( gltf ) {
                 	const lod = new THREE.LOD();
                 	var lod00 = gltf.scene.getObjectByName('trucks_out');
@@ -825,7 +828,7 @@ document.getElementById("startButton").style.display = "none";
 							playerScene.add(copy);
 					}}
 				} );
-
+				*/
 
 				loader.load( 'poles.glb', function ( gltf ) {
 					animPolesTexture = gltf.scene.getObjectByName('poles_out_anim').material;
@@ -871,10 +874,48 @@ document.getElementById("startButton").style.display = "none";
 					playerScene.add(sc01);
 					mapScene.add(sc01.clone());
 				} );
-				loader.load( 'castle.glb', function ( gltf ) {
-					
-					playerScene.add(gltf.scene);
+				
+
+				loader.load( 'wagon_placer.glb', function ( gltf ) {										
+					placer = gltf.scene;
+					loader.load( 'wagon01_comb.glb', function ( gltf ) {
+						gltf.scene.traverse( function( node ) {
+        					if ( node.isMesh ) { 
+        						node.material.envMap = textureCube;
+        						}
+    					} );
+						const place = placer.getObjectByName('wagon01_pl');
+						place.updateWorldMatrix(true,false);
+						console.log(placer.matrixWorld);									
+						gltf.scene.applyMatrix4(place.matrixWorld);
+						playerScene.add(gltf.scene);
+					} );
+					loader.load( 'wagon02_comb_ble.glb', function ( gltf ) {
+						gltf.scene.traverse( function( node ) {
+        					if ( node.isMesh ) { 
+        						node.material.envMap = textureCube; }
+    					} );
+						const place = placer.getObjectByName('wagon02_pl');
+						place.updateWorldMatrix(true,false);
+						console.log(placer.matrixWorld);									
+						gltf.scene.applyMatrix4(place.matrixWorld);
+						playerScene.add(gltf.scene);
+					} );
+					loader.load( 'wagon03_comb_ble.glb', function ( gltf ) {
+						gltf.scene.traverse( function( node ) {
+        					if ( node.isMesh ) { 
+        						node.material.envMap = textureCube;
+        						}
+    					} );
+						const place = placer.getObjectByName('wagon03_pl');
+						place.updateWorldMatrix(true,false);
+						console.log(placer.matrixWorld);									
+						gltf.scene.applyMatrix4(place.matrixWorld);
+						playerScene.add(gltf.scene);
+					} );	
 				} );
+				
+
 
 				
 					
@@ -1150,39 +1191,33 @@ document.getElementById("startButton").style.display = "none";
 
             function mapChange(){
             	const cameraSwith = activeCamera;
-            	console.log("test")
             	if(cameraSwith==mapCamera){
             		activeScene = playerScene;
             		document.getElementById("shopButton").style.display = "block";
             		document.getElementsByClassName("movement-pad")[0].style.display = "block";
             		activeCamera = playerCamera;
-            		console.log("testw")
             	};
             	if(cameraSwith==playerCamera){
             		activeScene = mapScene;
             		document.getElementById("shopButton").style.display = "none";
             		document.getElementsByClassName("movement-pad")[0].style.display = "none";
             		activeCamera = mapCamera;
-            		console.log("testq")
             	};  
             }
 
             function shopChange(){
             	const cameraSwith = activeCamera;
-            	console.log("test")
             	if(cameraSwith==shopCamera){
             		//activeScene = playerScene;
             		document.getElementById("mapButton").style.display = "block";
             		document.getElementsByClassName("movement-pad")[0].style.display = "block";
             		activeCamera = playerCamera;
-            		console.log("testw")
             	};
             	if(cameraSwith==playerCamera){
             		//activeScene = mapScene;
             		document.getElementById("mapButton").style.display = "none";
             		document.getElementsByClassName("movement-pad")[0].style.display = "none";
             		activeCamera = shopCamera;
-            		console.log("testq")
             	};  
             }
 
