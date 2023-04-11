@@ -887,6 +887,7 @@ document.getElementById("startButton").style.display = "none";
                 	//var lod = new THREE.LOD();	
 		            
                 	var station02;
+                	var station03;
 					for (let i =tileXmin; i <= tileXmax; i++) {
 						for (let j =tileZmin; j <= tileZmax; j++) {
 							
@@ -902,6 +903,9 @@ document.getElementById("startButton").style.display = "none";
 							if(i==0&&j==1){
 								station02 = copy;
 							}
+							if(i==1&&j==1){
+								station03 = copy;
+							}
 
 							copy.receiveShadow = true;
 							copy.position.x+=tileStep*j;
@@ -912,6 +916,11 @@ document.getElementById("startButton").style.display = "none";
 					loader.load( 'station_space02.glb', function ( gltf ) {
 	
 						station02.material.lightMap =  gltf.scene.getObjectByName('land_out_station_space02').material.map;
+					});
+
+					loader.load( 'station_space03.glb', function ( gltf ) {
+	
+						station03.material.lightMap =  gltf.scene.getObjectByName('land_out_station_space03').material.map;
 					});
 					
                 	gltf.scene.traverse( function( node ) {
@@ -1021,7 +1030,7 @@ document.getElementById("startButton").style.display = "none";
 						gltf.scene.applyMatrix4(place.matrixWorld);
 						playerScene.add(gltf.scene);
 					} );
-					loader.load( 'wagon04_comb.glb', function ( gltf ) {
+					loader.load( 'wagon04_comb_ble.glb', function ( gltf ) {
 						gltf.scene.traverse( function( node ) {
         					if ( node.isMesh ) { 
         						node.material.envMap = textureCube;
@@ -1032,7 +1041,19 @@ document.getElementById("startButton").style.display = "none";
 						console.log(placer.matrixWorld);									
 						gltf.scene.applyMatrix4(place.matrixWorld);
 						playerScene.add(gltf.scene);
-					} );		
+					} );
+					loader.load( 'wagon05_comb_ble.glb', function ( gltf ) {
+						gltf.scene.traverse( function( node ) {
+        					if ( node.isMesh ) { 
+        						node.material.envMap = textureCube;
+        						}
+    					} );
+						const place = placer.getObjectByName('wagon05_pl');
+						place.updateWorldMatrix(true,false);
+						console.log(placer.matrixWorld);									
+						gltf.scene.applyMatrix4(place.matrixWorld);
+						playerScene.add(gltf.scene);
+					} );			
 				} );
 				
 
