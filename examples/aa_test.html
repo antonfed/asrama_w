@@ -1,6 +1,7 @@
 <html>
     <head>
         <meta charset="utf-8">
+
         <META name="viewport" content="initial-scale=0.66, user-scalable=no"> 
         <title>JS 3D Physics</title>
         <link rel="stylesheet" href="css/touch-pad.css">
@@ -26,15 +27,19 @@
 			touch-action: none	
 			}
 			.canvas
-			{ outline: none;
-			 border: none; }
-			.startButton
 			{
-			display:none;	
+			outline: none;
+			border: none; 
 			}
-			.mapButton
-			{
-			display:none;	
+			.buttone {
+				background: transparent;
+				border: 0;
+				border: 1px solid rgb(255, 255, 255);
+				border-radius: 4px;
+				color: #ffffff;
+				padding: 12px 18px;
+				text-transform: uppercase;
+				cursor: pointer;
 			}
 
 
@@ -48,11 +53,20 @@
     	<div id="overlay">
 			<button id="startButton" style="display: none;" class="ui">Play</button>
 		</div>
-		<button id="mapButton" style="display: none; position:absolute; top:30px" >Map</button>
-		<button id="shopButton" style="display: none; position:absolute">Shop</button>
+		<div id="menu" style="position:absolute; width: 100%; justify-content: center; display: flex;pointer-events:none;">
+		<button id="autoButton" class="buttone" style="display: none;" >Auto</button>
+		</div>
+		<div id="menu" style="position:absolute;  width: 100%;display: flex;justify-content: right;pointer-events:none;">	
+		<button id="mapButton" class="buttone" style="display: none; " >Map</button>
+		</div>
+		<div id="menu" style="position:absolute;pointer-events:none;">
+		<button id="shopButton" class="buttone" style="display: none; ">Shop</button>
+		</div>
+
+
+
 		
     	
-
     	<script src="jsm/libs/ammo.wasm.js"></script>
 
     	<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
@@ -66,6 +80,9 @@
 		</script>
 		        <script type="module" class="ui">
         	import * as THREE from 'three';
+        	import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+        	import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+        	import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
         	import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
         	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         	import { Gyroscope } from 'three/addons/misc/Gyroscope.js';
@@ -146,6 +163,13 @@
 
 			let mixer;
 			let placer;
+
+			let intersect_map = [];
+			let characterPath;
+			let characterCurve;
+			let pt =[];
+
+			let autoMode = 0;
 // vertex shader
 THREE.ShaderChunk.fog_pars_vertex += `
 #ifdef USE_FOG
@@ -207,8 +231,16 @@ document.getElementById("startButton").style.display = "none";
 			//console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
 			};	
 			
-			Ammo().then(start);
 
+
+
+
+
+
+
+
+
+			Ammo().then(start);
 			
             
             function ready()
@@ -221,6 +253,8 @@ document.getElementById("startButton").style.display = "none";
 					mapButton.addEventListener( 'click', mapChange );
 					const shopButton = document.getElementById( 'shopButton' );
 					shopButton.addEventListener( 'click', shopChange );
+					const autoButton = document.getElementById( 'autoButton' );
+					autoButton.addEventListener( 'click', autoChange );
             	}
 
             function prestart (){
@@ -273,19 +307,83 @@ document.getElementById("startButton").style.display = "none";
 
             function start (){
 
-            	loader = new GLTFLoader(manager).setPath( 'models/gltf/' );
-                
 
-                setupPhysicsWorld();               
-				getHeightData();
-				setupGraphics();
-				setupMusic();
-                createBall();
-                createInteractiveBall()
-                
+              setupPhysicsWorld();               
+							getHeightData();
+							setupGraphics();
+							setupMusic();
+              createBall();
+              createInteractiveBall();
+
+
+
+
       
 	            
 	            }
+
+	        
+	        let positions = [];
+	        const ARC_SEGMENTS = 200;
+
+
+				/*******
+				 * Curves
+				 *********/
+	        function createCharacterPath(pos){
+				
+
+	        	characterCurve = new THREE.CatmullRomCurve3(pos);
+				pt = characterCurve.getPoints( 30 );
+				const geometry = new THREE.BufferGeometry().setFromPoints( pt );
+
+				const material = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+
+				// Create the final object to add to the scene
+				const curveObject = new THREE.Line( geometry, material );
+				mapScene.remove(characterPath);
+				characterPath = curveObject;
+				mapScene.add(characterPath);
+				}
+
+			//document.addEventListener( 'mousedown', onDocumentMouseDown );
+			function onDocumentMouseDown( event ) {    
+	            if(activeCamera == mapCamera){
+	            	event.preventDefault();
+		            var mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   
+		                                    -( event.clientY / window.innerHeight ) * 2 + 1,  
+		                                    0.5 );
+		            var playerWP = new THREE.Vector3();                             
+		            var targetWP = new THREE.Vector3();
+		            var raycaster = new THREE.Raycaster();                                        
+		           	raycaster.setFromCamera( mouse3D, mapCamera );
+		            var intersects = raycaster.intersectObjects( mapScene.children );
+		            if ( intersects.length > 0 ) {
+		            	var obj = intersects[ 0 ].object;
+		            	obj.getWorldPosition(targetWP);
+						ballHolder.getWorldPosition(playerWP);
+		                var pos = [
+		            	playerWP,
+						new THREE.Vector3( Math.random() * 3000, 50, Math.random() * 3000 ),
+						new THREE.Vector3( Math.random() * 3000, 50, Math.random() * 3000 ),
+
+						targetWP,
+						]
+		                autoMode = 1;
+		                document.getElementById("autoButton").style.display = "block";
+						createCharacterPath(pos);
+					}
+	            }
+	        }
+
+
+
+				
+
+
+
+
+
 
             function createTriangleShapeByBufferGeometry(geometry, scalingFactor) {
 			        var mesh = new Ammo.btTriangleMesh(true, true);
@@ -348,14 +446,12 @@ document.getElementById("startButton").style.display = "none";
 				//var shape = new Ammo.btConvexTriangleMeshShape( triangle_mesh, true);
 				
 				
-				console.log("collisionShape");
-				console.log(shape);
 				return shape
 
 			}
 
             function make_terrain() {
-
+            	/*
             	var collisionShape;
             	loader.load( 'wagon_collision.glb', function ( gltf ) {
 					gltf.scene.traverse( function( node ) {
@@ -363,11 +459,9 @@ document.getElementById("startButton").style.display = "none";
         					node.updateMatrix();
         					node.updateWorldMatrix(true,false);
 		        			collisionShape = col_mesh(node);
-							console.log(collisionShape); 
 						
 
 							collisionShape.setMargin(3);
-							console.log(collisionShape);
 			            	const colTransform = new Ammo.btTransform();
 							colTransform.setIdentity();
 							
@@ -381,6 +475,7 @@ document.getElementById("startButton").style.display = "none";
     				} );
 					
 				} );
+				*/
 
 	            const groundShape = createTerrainShape();
 
@@ -398,6 +493,8 @@ document.getElementById("startButton").style.display = "none";
 							const groundBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass, groundMotionState, groundShape, groundLocalInertia ) );
 							physicsWorld.addRigidBody( groundBody );
 				}};
+
+				/*
 				for (let i =0; i <= 1; i+=1) {
 					for (let j =-1; j <= 1; j+=2) {
 						let bordersShape;
@@ -411,8 +508,7 @@ document.getElementById("startButton").style.display = "none";
 						}
 						if(i!=0){bordersShape = new Ammo.btBoxShape(new Ammo.btVector3(wall_th,500,wall_len));
 						geometry = new THREE.BoxGeometry(wall_th,200,wall_len,1,1,wall_len/100);
-						}
-						//console.log(i)						
+						}					
 						
 						const material = new THREE.MeshBasicMaterial( {color: 0x00ff00,} );
 						material.wireframe = true;
@@ -431,6 +527,7 @@ document.getElementById("startButton").style.display = "none";
 						const bordersBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( bordersMass, bordersMotionState, bordersShape, bordersLocalInertia ) );
 						physicsWorld.addRigidBody( bordersBody );
 				}};
+				*/
 				
 				
 
@@ -488,7 +585,6 @@ document.getElementById("startButton").style.display = "none";
             		
         			}
         			heightData = data;
-        			//console.log(heightData);
 	        		make_terrain()
 	        	}	        	
 
@@ -768,7 +864,6 @@ document.getElementById("startButton").style.display = "none";
 				renderer.toneMappingExposure = 1;
 				renderer.outputEncoding = THREE.sRGBEncoding;
 				renderer.shadowMap.enabled = true;
-				renderer.autoClear = false;
 				container = document.body.appendChild( renderer.domElement );
 				/*
 				if ( /(iPad|iPhone|iPod)/g.test( navigator.userAgent ) ) {
@@ -788,11 +883,18 @@ document.getElementById("startButton").style.display = "none";
                 //
                 //
 
-				
+				//LOADER
+				const dracoLoader = new DRACOLoader().setDecoderPath('jsm/libs/draco/');
+        const ktx2Loader = new KTX2Loader().setTranscoderPath( 'jsm/libs/basis/' ).detectSupport( renderer );
+				const loader = new GLTFLoader().setPath( 'models/gltf/' );
+							
+				loader.setKTX2Loader( ktx2Loader );
+				loader.setDRACOLoader(dracoLoader);
+				loader.setMeshoptDecoder( MeshoptDecoder );
 
 				const loader_env = new THREE.CubeTextureLoader();
 				loader_env.setPath( 'textures/cube/pisa/' );
-                textureCube = loader_env.load( [ 'px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png' ] );
+        textureCube = loader_env.load( [ 'px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png' ] );
 				textureCube.encoding = THREE.sRGBEncoding;
 
 				var alphaMap = new THREE.TextureLoader().load('textures/c_col.jpg');
@@ -836,20 +938,23 @@ document.getElementById("startButton").style.display = "none";
     						roughness: 0.2
 						} );                
 
-				loader.load( 'ha.glb', function ( gltf ) {
-					gltf.scene.traverse( function( node ) {
-        				if ( node.isMesh ) { node.castShadow = true; }
-    				} );
+				//loader.load( 'ha_ktx.glb', function ( gltf ) {
+					//gltf.scene.traverse( function( node ) {
+        	//			if ( node.isMesh ) { node.castShadow = true; }
+    			//	} );
 					
-					mixer = new THREE.AnimationMixer( gltf.scene );
-					var action = mixer.clipAction( gltf.animations[ 0 ] );
+					//mixer = new THREE.AnimationMixer( gltf.scene );
+					//var action = mixer.clipAction( gltf.animations[ 0 ] );
 					//console.log(gltf.animations[ 0 ])
-					action.play();
-					gltf.scene.rotation.y = 3.14;
-					hover.add( gltf.scene );
-					hover.scale.set(5,5,5); 
-					ballHolder.add( hover );
-				} );
+					//action.play();
+					//gltf.scene.rotation.y = 3.14;
+					//hover.add( gltf.scene );
+					
+				//} );
+
+				hover.scale.set(5,5,5); 
+				ballHolder.add( hover );
+
 				loader.load( 'hover.glb', function ( gltf ) {
 					gltf.scene.traverse( function( node ) {
         				if ( node.isMesh ) { node.castShadow = true; }
@@ -867,7 +972,7 @@ document.getElementById("startButton").style.display = "none";
 					sky = gltf.scene;
 					playerCamera.add( gltf.scene );
 				} );
-                loader.load( 'output.glb', function ( gltf ) {
+                loader.load( 'output_ktx.glb', function ( gltf ) {
                 	var mainTile = gltf.scene.getObjectByName('land_out');
                 	gltf.scene.getObjectByName('land_out').material.lightMap = gltf.scene.getObjectByName('land_out').material.map;
                 	gltf.scene.getObjectByName('land_out').material.map = land_map;
@@ -892,19 +997,19 @@ document.getElementById("startButton").style.display = "none";
 							var copy = gltf.scene.getObjectByName('land_out').clone();
 							copy.material = gltf.scene.getObjectByName('land_out').material.clone();
 							var mat = copy.material;
-							if(i==0&&j==1){
-								station02 = copy;
-							}
-							if(i==1&&j==1){
-								station03 = copy;
-							}
+							//if(i==0&&j==1){
+							//	station02 = copy;
+							//}
+							//if(i==1&&j==1){
+							//	station03 = copy;
+							//}
 
 							copy.receiveShadow = true;
 							copy.position.x+=tileStep*j;
 							copy.position.z+=tileStep*i;
 							playerScene.add(copy);
 					}}
-
+					/*
 					loader.load( 'station_space02.glb', function ( gltf ) {
 	
 						station02.material.lightMap =  gltf.scene.getObjectByName('land_out_station_space02').material.map;
@@ -918,6 +1023,7 @@ document.getElementById("startButton").style.display = "none";
                 	gltf.scene.traverse( function( node ) {
         				if ( node.isMesh ) { node.receiveShadow = true; }
     				} );
+    				*/
 					//scene.add( gltf.scene );
 				} );
 				/*
@@ -980,14 +1086,26 @@ document.getElementById("startButton").style.display = "none";
 					gltf.scene.getObjectByName('station01_tube_out').material.transparent = true;
 					sc01 = gltf.scene;
 					
-					playerScene.add(sc01);
-					mapScene.add(sc01.clone());
+					mapScene.add(sc01);
+					intersect_map.push(sc01); 
+					playerScene.add(sc01.clone());
+					
 				} );
 				
 
+
+
+				//loader.load( 'wagon03_comb_ble.glb', function ( gltf ) {
+				//		playerScene.add(gltf.scene);
+				//} );
+
+
+
+				
 				loader.load( 'wagon_placer.glb', function ( gltf ) {										
 					placer = gltf.scene;
-					loader.load( 'wagon01_comb.glb', function ( gltf ) {
+					
+					loader.load( 'wagon01_comb_ktx.glb', function ( gltf ) {
 						gltf.scene.traverse( function( node ) {
         					if ( node.isMesh ) { 
         						node.material.envMap = textureCube;
@@ -999,10 +1117,12 @@ document.getElementById("startButton").style.display = "none";
 						gltf.scene.applyMatrix4(place.matrixWorld);
 						playerScene.add(gltf.scene);
 					} );
-					loader.load( 'wagon02_comb_ble.glb', function ( gltf ) {
+
+					loader.load( 'wagon02_comb_ktx.glb', function ( gltf ) {
 						gltf.scene.traverse( function( node ) {
         					if ( node.isMesh ) { 
-        						node.material.envMap = textureCube; }
+        						node.material.envMap = textureCube;
+        						}
     					} );
 						const place = placer.getObjectByName('wagon02_pl');
 						place.updateWorldMatrix(true,false);
@@ -1010,7 +1130,8 @@ document.getElementById("startButton").style.display = "none";
 						gltf.scene.applyMatrix4(place.matrixWorld);
 						playerScene.add(gltf.scene);
 					} );
-					loader.load( 'wagon03_comb_ble.glb', function ( gltf ) {
+
+					loader.load( 'wagon03_comb_ktx.glb', function ( gltf ) {
 						gltf.scene.traverse( function( node ) {
         					if ( node.isMesh ) { 
         						node.material.envMap = textureCube;
@@ -1026,6 +1147,7 @@ document.getElementById("startButton").style.display = "none";
 						gltf.scene.traverse( function( node ) {
         					if ( node.isMesh ) { 
         						node.material.envMap = textureCube;
+        						node.material.transparent = true;
         						}
     					} );
 						const place = placer.getObjectByName('wagon04_pl');
@@ -1038,6 +1160,7 @@ document.getElementById("startButton").style.display = "none";
 						gltf.scene.traverse( function( node ) {
         					if ( node.isMesh ) { 
         						node.material.envMap = textureCube;
+        						node.material.transparent = true;
         						}
     					} );
 						const place = placer.getObjectByName('wagon05_pl');
@@ -1045,8 +1168,11 @@ document.getElementById("startButton").style.display = "none";
 						console.log(placer.matrixWorld);									
 						gltf.scene.applyMatrix4(place.matrixWorld);
 						playerScene.add(gltf.scene);
-					} );			
+					} );
+								
 				} );
+				
+
 				
 
 
@@ -1059,8 +1185,9 @@ document.getElementById("startButton").style.display = "none";
 					gltf.scene.getObjectByName('station02_tube_out').material.alphaMap = alphaMap;
 					gltf.scene.getObjectByName('station02_tube_out').material.transparent = true;
 					sc02 = gltf.scene;
-					playerScene.add( sc02 );
-					mapScene.add(sc02.clone());
+					playerScene.add( sc02.clone() );
+					intersect_map.push(sc02);
+					mapScene.add(sc02);
 				} );
 				loader.load( 'station03.glb', function ( gltf ) {
 
@@ -1070,8 +1197,11 @@ document.getElementById("startButton").style.display = "none";
 					gltf.scene.getObjectByName('station03_out').material = sphereMaterial;
 					
 					sc03 = gltf.scene;
-					playerScene.add( sc03 );
-					mapScene.add(sc03.clone());
+
+					playerScene.add( sc03.clone() );
+					intersect_map.push(sc03);
+					mapScene.add(sc03);
+					
 				} );
 				loader.load( 'station04.glb', function ( gltf ) {
 
@@ -1194,25 +1324,82 @@ document.getElementById("startButton").style.display = "none";
 
             function moveBall(){
 
+
+            	var characterPos = new THREE.Vector3();
+            	var characterDir = new THREE.Vector3()
+                ballHolder.getWorldPosition( characterPos );
+                ballHolder.getWorldDirection( characterDir );
+
             	//mouse.x = +(event.targetTouches[0].pageX / window.innerWidth) * 2 +-1;
 
 				//mouse.y = -(event.targetTouches[0].pageY / window.innerHeight) * 2 + 1;
             	
+            	//find nearest point on curve
+            	//console.log(characterCurve.points)
+            	/*
+            	var posCurve = new THREE.Vector3();
+            	var nextnearest = 10000;
+            	var nearest = 10000;
+            	for (var i=0; i<characterCurve.points.length; i++) {
+            		if(characterCurve.points[i].distanceTo(characterPos)<nearest){
+            			nearest = characterCurve.points[i].distanceTo(characterPos);
+            			testtt = i;
+            			posCurve = characterCurve.points[i+1];
+            		}
+    			}
+    			*/
+    			
+    			var posCurve = new THREE.Vector3(0,0,0);
+                if(pt.length>1){
+	    			
+	    			if (pt[0].distanceTo(characterPos)<500){
+	    				pt.shift();
+	    				
+
+					}
+					posCurve =pt[0];
+				}
+				else 
+				{
+					autoMode = 0;
+				}
+
+    			
+
                 let scalingFactor = 5;
 
                 moveX +=  kMoveDirection.right - kMoveDirection.left;
                 moveZ +=  kMoveDirection.back - kMoveDirection.forward;
                 let moveY =  0;
-                smoothI.push(moveX); 
-                ballHolder.rotation.y-=(smoothI.reduce((a,b) => (a+b)) / smoothI.length)*0.022;
-                smoothI.shift();
+                
                 //if(moveZ == 0) return;
 
-                var vector = new THREE.Vector3()
-                ballHolder.getWorldDirection( vector );
-                //console.log(vector.z)
                 
-                let resultantImpulse = new Ammo.btVector3( vector.x*moveZ, 0, vector.z*moveZ )
+                
+                var testtt = posCurve;
+
+                let autoDir = new THREE.Vector3();
+                if(posCurve){autoDir = posCurve.clone().sub(characterPos)};
+                
+                autoDir.y = 0;		
+                autoDir.normalize();
+                //console.log(autoDir)
+
+                let resultantImpulse
+                if(!autoMode){
+	                smoothI.push(moveX); 
+	                ballHolder.rotation.y-=(smoothI.reduce((a,b) => (a+b)) / smoothI.length)*0.022;
+	                smoothI.shift();
+	                resultantImpulse = new Ammo.btVector3( characterDir.x*moveZ, 0, characterDir.z*moveZ )
+	            	}
+              	else{
+	                smoothI.push(characterDir.clone().cross(new THREE.Vector3(0,-1,0)).dot(autoDir)); 
+	                ballHolder.rotation.y-=(smoothI.reduce((a,b) => (a+b)) / smoothI.length)*0.022;
+	                smoothI.shift();
+	                resultantImpulse = new Ammo.btVector3(autoDir.x,0,autoDir.z);
+	            }
+
+                
                 resultantImpulse.op_mul(scalingFactor);
 
                 let physicsBody = ballObject.userData.physicsBody;
@@ -1225,16 +1412,15 @@ document.getElementById("startButton").style.display = "none";
                 let side = new THREE.Vector3(test.x(),0,test.z());
              	
                 let len = side.length()*0.02;
-                vector.normalize();
-                vector.cross(new THREE.Vector3(0,1,0));
+                characterDir.normalize();
+                characterDir.cross(new THREE.Vector3(0,1,0));
                 side.normalize();
-                //console.log(len);
-                smoothZ.push(vector.dot(side)*len);
+
+                smoothZ.push(characterDir.dot(side)*len);
                 smoothX.push(test.y());
                 hover.rotation.x = (smoothX.reduce((a,b) => (a+b)) / smoothX.length)*0.005
                 hover.rotation.z = -(smoothZ.reduce((a,b) => (a+b)) / smoothZ.length)*0.4;
                 	
-                //console.log(smooth.reduce((a,b) => (a+b)) / smooth.length);
                 smoothX.shift();
                 smoothZ.shift();
                 moveX = 0;
@@ -1294,7 +1480,6 @@ document.getElementById("startButton").style.display = "none";
                 //sc03.children[0].children[0].rotation.y +=deltaTime*0.3;
                 moveBall();
                 cameraHolder.rotation.y = ctrl.rot.y*2;
-                //console.log(ctrl.rot)
                 ctrl.update();
                 moveX = ctrl.velocity.x*1.5;
                 moveZ = ctrl.velocity.z*1.5;
@@ -1303,13 +1488,11 @@ document.getElementById("startButton").style.display = "none";
                 playerCamera.getWorldPosition(mapCamera.position);
                 mapCamera.position.y = 4000;
 
-                mixer.update( deltaTime*0.65 );
+                //mixer.update( deltaTime*0.65 );
 
                 updatePhysics( deltaTime );
                 renderer.clear();
 				renderer.render( activeScene, activeCamera );
-				renderer.clearDepth();
-				renderer.render( scene_no_fog, activeCamera );
 
                 requestAnimationFrame( renderFrame );
 
@@ -1336,6 +1519,11 @@ document.getElementById("startButton").style.display = "none";
             		document.getElementsByClassName("movement-pad")[0].style.display = "none";
             		activeCamera = mapCamera;
             	};  
+            }
+
+            function autoChange(){
+ 			document.getElementById("autoButton").style.display = "none";
+ 			pt = [];
             }
 
             function shopChange(){
