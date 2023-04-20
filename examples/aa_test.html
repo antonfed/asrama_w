@@ -100,76 +100,80 @@
             const FLAGS = { CF_KINEMATIC_OBJECT: 2 }
 
             // Heightfield parameters
-			const terrainWidthExtents = 3000;
-			const terrainDepthExtents = 3000;
-			const terrainWidth = 512;
-			const terrainDepth = 512;
-			const terrainHalfWidth = terrainWidth / 2;
-			const terrainHalfDepth = terrainDepth / 2;
-			const terrainMaxHeight = 300;
-			const terrainMinHeight = 0;
+const terrainWidthExtents = 3000;
+const terrainDepthExtents = 3000;
+const terrainWidth = 512;
+const terrainDepth = 512;
+const terrainHalfWidth = terrainWidth / 2;
+const terrainHalfDepth = terrainDepth / 2;
+const terrainMaxHeight = 300;
+const terrainMinHeight = 0;
 
-			let heightData = null;
-			let ammoHeightData = null;
-			let terrainMesh;
-			let img;
-			let scale;
-			let gyro;
-			let ballHolder = new THREE.Object3D();
-			let cameraHolder = new THREE.Object3D();;
-			let controls;
-			let loader;
-			let hover = new THREE.Object3D();
+let heightData = null;
+let ammoHeightData = null;
+let terrainMesh;
+let img;
+let scale;
+let gyro;
+let ballHolder = new THREE.Object3D();
+let cameraHolder = new THREE.Object3D();;
+let controls;
+let loader;
+let hover = new THREE.Object3D();
 
-			let sky;
-			let smoothX = Array(15).fill(0);
-			let smoothZ = Array(7).fill(0);
-			let smoothPY = Array(7).fill(0);
-			let smoothI = Array(25).fill(0);
-			let mouse;
-			let moveZ=0.0;
-			let moveX=0.0;
+let sky;
+let smoothX = Array(15).fill(0);
+let smoothZ = Array(7).fill(0);
+let smoothPY = Array(7).fill(0);
+let smoothI = Array(25).fill(0);
+let mouse;
+let moveZ=0.0;
+let moveX=0.0;
 
-			let textureCube;
-			let scene_no_fog;
-			let song1,song2,song3;
-			let container;
-			let ctrl;
+let textureCube;
+let scene_no_fog;
+let song1,song2,song3;
+let container;
+let ctrl;
 
-			let width, height;
-			let dirLight;
-			let animPolesTexture;
+let width, height;
+let dirLight;
+let animPolesTexture;
 
-			let sc01,sc02,sc03
-			let tileXmin = -2;
-			let tileXmax = 2;
-			let tileZmin = -2;
-			let tileZmax = 2;
-			let tileStep = -3001.5;
+let sc01,sc02,sc03
+let tileXmin = -2;
+let tileXmax = 2;
+let tileZmin = -2;
+let tileZmax = 2;
+let tileStep = -3001.5;
 
-			let musicLoad = 3;
-			let geoLoad = 1;
-			let sound1,sound2,sound3;
-			
-			let mapCamera;
-			let playerCamera
-			let activeCamera;
-			let shopCamera;
+let musicLoad = 3;
+let geoLoad = 1;
+let sound1,sound2,sound3;
 
-			let mapScene;
-			let playerScene;
-			let activeScene;
-			let shopScene;
+let mapCamera;
+let playerCamera
+let activeCamera;
+let shopCamera;
 
-			let mixer;
-			let placer;
+let mapScene;
+let playerScene;
+let activeScene;
+let shopScene;
 
-			let intersect_map = [];
-			let characterPath;
-			let characterCurve;
-			let pt =[];
+let mixer;
+let placer;
 
-			let autoMode = 0;
+let intersect_map = [];
+let characterPath;
+let characterCurve;
+let pt =[];
+
+let autoMode = 0;
+
+let positions = [];
+const ARC_SEGMENTS = 200;
+
 // vertex shader
 THREE.ShaderChunk.fog_pars_vertex += `
 #ifdef USE_FOG
@@ -201,130 +205,89 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
   ${FOG_APPLIED_LINE}
 `);
 
-document.getElementById("startButton").style.display = "none";
 
-			//const viewer = document.getElementById( 'viewer' );
+//MANAGER
+const manager = new THREE.LoadingManager();
 
-			const manager = new THREE.LoadingManager();
+manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
+//console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+};
 
-			manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
+manager.onLoad = function ( ) {
+//console.log( 'Loading complete!');
+geoLoad = 0;
+if(musicLoad==0&&geoLoad==0){ready()};
+};
+
+manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
+var elem = document.getElementById("myBar");
+elem.value = itemsLoaded/itemsTotal*100;
+//console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+};	
 			
+Ammo().then(start);
 
-			
-			//console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
-
-			};
-
-			manager.onLoad = function ( ) {
-
-			//console.log( 'Loading complete!');
-			geoLoad = 0;
-			if(musicLoad==0&&geoLoad==0){ready()};
-
-			};
-
-			manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
-
-			
-			var elem = document.getElementById("myBar");
-			elem.value = itemsLoaded/itemsTotal*100;
-			//console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
-			};	
-			
-
-
-
-
-
-
-
-
-
-			Ammo().then(start);
-			
+function start () {
+	setupPhysicsWorld();               
+	getHeightData();
+	setupGraphics();
+	setupMusic();
+	createBall();
+	createInteractiveBall();
+}	
             
-            function ready()
-            	{
-            		document.getElementById("startButton").style.display = "block";
-					
-					const startButton = document.getElementById( 'startButton' );
-					startButton.addEventListener( 'click', prestart );
-					const mapButton = document.getElementById( 'mapButton' );
-					mapButton.addEventListener( 'click', mapChange );
-					const shopButton = document.getElementById( 'shopButton' );
-					shopButton.addEventListener( 'click', shopChange );
-					const autoButton = document.getElementById( 'autoButton' );
-					autoButton.addEventListener( 'click', autoChange );
-            	}
+function ready() {
+document.getElementById("startButton").style.display = "block";
+const startButton = document.getElementById( 'startButton' );
+startButton.addEventListener( 'click', levelStart );
+const mapButton = document.getElementById( 'mapButton' );
+mapButton.addEventListener( 'click', mapChange );
+const shopButton = document.getElementById( 'shopButton' );
+shopButton.addEventListener( 'click', shopChange );
+const autoButton = document.getElementById( 'autoButton' );
+autoButton.addEventListener( 'click', autoChange );
+}
 
-            function prestart (){
-            	const overlay = document.getElementById( 'overlay' );
-            	const myBar = document.getElementById( 'myBar' );
-            	document.getElementById( 's1' ).remove();
-            	document.getElementById( 's2' ).remove();
-            	document.getElementById( 's3' ).remove();
-				overlay.remove();
-				myBar.remove();
+function levelStart() {
+	document.getElementById( 'overlay' ).remove();
+	document.getElementById( 'myBar' ).remove();
+	document.getElementById( 's1' ).remove();
+	document.getElementById( 's2' ).remove();
+	document.getElementById( 's3' ).remove();
+	            	
+	width = window.innerWidth
+	height = window.innerHeight
+	
+	addControls();
+	document.getElementById("mapButton").style.display = "block";
+	document.getElementById("shopButton").style.display = "block";
+	renderFrame();
+	sound1.play()
+	sound2.play()
+	sound3.play()
+}
 
+function addControls() {
+	// Camera
 
-            	
+	let aspect = width / height
+	let viewAngle = 45
+	let near = 1
+	let far = 300
+	let camera_mew = new THREE.PerspectiveCamera(viewAngle, aspect, near, far)
+	// Controls
+	let options = {
+	delta: 0.75,           // coefficient of movement
+	moveSpeed: 0.5,        // speed of movement
+	rotationSpeed: 0.002,  // coefficient of rotation
+	maxPitch: 55,          // max camera pitch angle
+	hitTest: false,         // stop on hitting objects
+	hitTestDistance: 40    // distance to test for hit
+	}
 
-            	width = window.innerWidth
-    			height = window.innerHeight
-            	addControls();
-            	document.getElementById("mapButton").style.display = "block";
-            	document.getElementById("shopButton").style.display = "block";
-            	renderFrame();
-            	sound1.play()
-            	sound2.play()
-            	sound3.play()
-            	
-            	
-            }
+	ctrl = new TouchControls(document.body, camera_mew, options);
+}
 
-			function addControls() {
-			    // Camera
-
-			    let aspect = width / height
-			    let viewAngle = 45
-				let near = 1
-				let far = 300
-			    let camera_mew = new THREE.PerspectiveCamera(viewAngle, aspect, near, far)
-			    // Controls
-			    let options = {
-			        delta: 0.75,           // coefficient of movement
-			        moveSpeed: 0.5,        // speed of movement
-			        rotationSpeed: 0.002,  // coefficient of rotation
-			        maxPitch: 55,          // max camera pitch angle
-			        hitTest: false,         // stop on hitting objects
-			        hitTestDistance: 40    // distance to test for hit
-			    }
-
-			    ctrl = new TouchControls(document.body, camera_mew, options)
-
-			}
-
-
-            function start (){
-
-
-              setupPhysicsWorld();               
-							getHeightData();
-							setupGraphics();
-							setupMusic();
-              createBall();
-              createInteractiveBall();
-
-
-
-
-      
-	            
-	            }
-
-	        
-	        let positions = [];
-	        const ARC_SEGMENTS = 200;
 
 
 				/*******
@@ -477,22 +440,20 @@ document.getElementById("startButton").style.display = "none";
 				} );
 				*/
 
-	            const groundShape = createTerrainShape();
-
-
-
-	            for (let i =tileXmin-1; i <= tileXmax+1; i++) {
-						for (let j =tileZmin-1; j <= tileZmax+1; j++) {
-							const groundTransform = new Ammo.btTransform();
-							groundTransform.setIdentity();
-							// Shifts the terrain, since bullet re-centers it on its bounding box.
-							groundTransform.setOrigin( new Ammo.btVector3( tileStep*j, ( terrainMaxHeight + terrainMinHeight ) / 2, tileStep*i ) );
-							const groundMass = 0;
-							const groundLocalInertia = new Ammo.btVector3( 0, 0, 0 );
-							const groundMotionState = new Ammo.btDefaultMotionState( groundTransform );
-							const groundBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass, groundMotionState, groundShape, groundLocalInertia ) );
-							physicsWorld.addRigidBody( groundBody );
-				}};
+	const groundShape = createTerrainShape();
+	//multiple collision landscapes
+	for (let i =tileXmin-1; i <= tileXmax+1; i++) {
+		for (let j =tileZmin-1; j <= tileZmax+1; j++) {
+			const groundTransform = new Ammo.btTransform();
+			groundTransform.setIdentity();
+			// Shifts the terrain, since bullet re-centers it on its bounding box.
+			groundTransform.setOrigin( new Ammo.btVector3( tileStep*j, ( terrainMaxHeight + terrainMinHeight ) / 2, tileStep*i ) );
+			const groundMass = 0;
+			const groundLocalInertia = new Ammo.btVector3( 0, 0, 0 );
+			const groundMotionState = new Ammo.btDefaultMotionState( groundTransform );
+			const groundBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass, groundMotionState, groundShape, groundLocalInertia ) );
+			physicsWorld.addRigidBody( groundBody );
+	}};
 
 				/*
 				for (let i =0; i <= 1; i+=1) {
@@ -784,16 +745,13 @@ document.getElementById("startButton").style.display = "none";
                 playerScene = new THREE.Scene();
                 mapScene = new THREE.Scene();
                 activeScene = playerScene;
-                scene_no_fog = new THREE.Scene();
+
                 playerScene.background = new THREE.Color( 0xbfd1e5 );
                 mapScene.background = new THREE.Color( 0xffddc4 );
+                
                 var amb =  new THREE.AmbientLight( 0xf0f0f0 )
                 amb.intensity = 0.5;
                 playerScene.add(amb);
-                scene_no_fog.add( new THREE.AmbientLight( 0xf0f0f0 ) );
-
-                //scene.background = new THREE.Color( 0x5e7bbf );
-                scene_no_fog.fog = new THREE.FogExp2( 0xf7e0c8, 0.0002 );
                 playerScene.fog = new THREE.FogExp2( 0xf7e0c8, 0.003 );
                 
                 playerCamera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 10000 );
@@ -809,7 +767,7 @@ document.getElementById("startButton").style.display = "none";
 				playerCamera.position.set( 0, 10, 30 );
 				playerCamera.rotation.set( -0.1, 0, 0 );
 				cameraHolder.add(playerCamera);
-                ballHolder.add(cameraHolder);
+        ballHolder.add(cameraHolder);
 
                 
                 	
@@ -844,35 +802,21 @@ document.getElementById("startButton").style.display = "none";
                 ballHolder.add(dirLight);
                 ballHolder.add(dirLight.target);
 
-
-                //Setup the renderer
-
-                //renderer = new THREE.WebGLRenderer( { antialias: true } );
-                //renderer.setClearColor( 0xbfd1e5 );
-                //renderer.setPixelRatio( window.devicePixelRatio );
-                //renderer.setSize( window.innerWidth, window.innerHeight );
-                
-
-                //renderer.gammaInput = true;
-                //renderer.gammaOutput = true;
-
                
-                renderer = new THREE.WebGLRenderer( { antialias: true } );
+        renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.toneMapping = THREE.ACESFilmicToneMapping;
 				renderer.toneMappingExposure = 1;
 				renderer.outputEncoding = THREE.sRGBEncoding;
 				renderer.shadowMap.enabled = true;
-				container = document.body.appendChild( renderer.domElement );
-				/*
-				if ( /(iPad|iPhone|iPod)/g.test( navigator.userAgent ) ) {
 
-					container.style.width = getComputedStyle( viewer ).width;
-					container.style.height = getComputedStyle( viewer ).height;
-					container.setAttribute( 'scrolling', 'no' );
-				}
-				*/ 
+				renderer.debug.checkShaderErrors = false;
+
+				renderer.compile(playerScene,playerCamera);
+				renderer.getContext().getProgramInfoLog= function() { return '' }
+				container = document.body.appendChild( renderer.domElement );
+				
 
 				//
                 //
@@ -880,7 +824,7 @@ document.getElementById("startButton").style.display = "none";
                 //
                 //
                 //
-                //
+                //	
                 //
 
 				//LOADER
@@ -954,6 +898,7 @@ document.getElementById("startButton").style.display = "none";
 
 				hover.scale.set(5,5,5); 
 				ballHolder.add( hover );
+				playerScene.add(ballHolder);
 
 				loader.load( 'hover.glb', function ( gltf ) {
 					gltf.scene.traverse( function( node ) {
@@ -961,10 +906,9 @@ document.getElementById("startButton").style.display = "none";
     				} );
 					hover.add( gltf.scene );
 
-					ballHolder.add( hover );
+					
 				} );
 
-				playerScene.add(ballHolder);
 
                 loader.load( 'sky.glb', function ( gltf ) {
 					gltf.scene.position.y = -300;
@@ -1026,24 +970,6 @@ document.getElementById("startButton").style.display = "none";
     				*/
 					//scene.add( gltf.scene );
 				} );
-				/*
-                loader.load( 'trucks.glb', function ( gltf ) {
-                	const lod = new THREE.LOD();
-                	var lod00 = gltf.scene.getObjectByName('trucks_out');
-                	var lod01 = new THREE.Object3D();
-                	lod.addLevel( lod00, 2000 );
-                	lod.addLevel( lod01, 2500 );
-					for (let i =tileXmin; i <= tileXmax; i++) {
-						for (let j =tileZmin; j <= tileZmax; j++) {
-							
-							const copy = lod.clone();
-							copy.receiveShadow = true;
-							copy.position.x+=tileStep*j;
-							copy.position.z+=tileStep*i;
-							playerScene.add(copy);
-					}}
-				} );
-				*/
 
 				loader.load( 'poles.glb', function ( gltf ) {
 					animPolesTexture = gltf.scene.getObjectByName('poles_out_anim').material;
@@ -1058,7 +984,7 @@ document.getElementById("startButton").style.display = "none";
 							copy.receiveShadow = true;
 							copy.position.x+=tileStep*j;
 							copy.position.z+=tileStep*i;
-							playerScene.add(copy);
+							//playerScene.add(copy);
 					}}
 
 				} );
@@ -1074,30 +1000,11 @@ document.getElementById("startButton").style.display = "none";
 							copy.receiveShadow = true;
 							copy.position.x+=tileStep*j;
 							copy.position.z+=tileStep*i;
-							playerScene.add(copy);
+							//playerScene.add(copy);
 					}}
 				} );
-				loader.load( 'station01.glb', function ( gltf ) {
-					
-					gltf.scene.getObjectByName('station01_out').material = sphereMaterial;
-					
-
-					gltf.scene.getObjectByName('station01_tube_out').material.alphaMap = alphaMap;
-					gltf.scene.getObjectByName('station01_tube_out').material.transparent = true;
-					sc01 = gltf.scene;
-					
-					mapScene.add(sc01);
-					intersect_map.push(sc01); 
-					playerScene.add(sc01.clone());
-					
-				} );
 				
-
-
-
-				//loader.load( 'wagon03_comb_ble.glb', function ( gltf ) {
-				//		playerScene.add(gltf.scene);
-				//} );
+				
 
 
 
@@ -1176,7 +1083,20 @@ document.getElementById("startButton").style.display = "none";
 				
 
 
-				
+				loader.load( 'station01.glb', function ( gltf ) {
+					
+					gltf.scene.getObjectByName('station01_out').material = sphereMaterial;
+					
+
+					gltf.scene.getObjectByName('station01_tube_out').material.alphaMap = alphaMap;
+					gltf.scene.getObjectByName('station01_tube_out').material.transparent = true;
+					sc01 = gltf.scene;
+					
+					mapScene.add(sc01);
+					intersect_map.push(sc01); 
+					playerScene.add(sc01.clone());
+					
+				} );
 					
 				loader.load( 'station02.glb', function ( gltf ) {
 					gltf.scene.getObjectByName('station02_out').material = sphereMaterial;
@@ -1185,9 +1105,9 @@ document.getElementById("startButton").style.display = "none";
 					gltf.scene.getObjectByName('station02_tube_out').material.alphaMap = alphaMap;
 					gltf.scene.getObjectByName('station02_tube_out').material.transparent = true;
 					sc02 = gltf.scene;
-					playerScene.add( sc02.clone() );
+					//playerScene.add( sc02.clone() );
 					intersect_map.push(sc02);
-					mapScene.add(sc02);
+					//mapScene.add(sc02);
 				} );
 				loader.load( 'station03.glb', function ( gltf ) {
 
@@ -1198,9 +1118,9 @@ document.getElementById("startButton").style.display = "none";
 					
 					sc03 = gltf.scene;
 
-					playerScene.add( sc03.clone() );
+					//playerScene.add( sc03.clone() );
 					intersect_map.push(sc03);
-					mapScene.add(sc03);
+					//mapScene.add(sc03);
 					
 				} );
 				loader.load( 'station04.glb', function ( gltf ) {
@@ -1210,7 +1130,7 @@ document.getElementById("startButton").style.display = "none";
 
 					gltf.scene.getObjectByName('station04_out').material = sphereMaterial;
 
-					playerScene.add( gltf.scene );
+					//playerScene.add( gltf.scene );
 				} );
             }
             function createInteractiveBall(){
@@ -1329,40 +1249,21 @@ document.getElementById("startButton").style.display = "none";
             	var characterDir = new THREE.Vector3()
                 ballHolder.getWorldPosition( characterPos );
                 ballHolder.getWorldDirection( characterDir );
-
-            	//mouse.x = +(event.targetTouches[0].pageX / window.innerWidth) * 2 +-1;
-
-				//mouse.y = -(event.targetTouches[0].pageY / window.innerHeight) * 2 + 1;
-            	
-            	//find nearest point on curve
-            	//console.log(characterCurve.points)
-            	/*
-            	var posCurve = new THREE.Vector3();
-            	var nextnearest = 10000;
-            	var nearest = 10000;
-            	for (var i=0; i<characterCurve.points.length; i++) {
-            		if(characterCurve.points[i].distanceTo(characterPos)<nearest){
-            			nearest = characterCurve.points[i].distanceTo(characterPos);
-            			testtt = i;
-            			posCurve = characterCurve.points[i+1];
-            		}
-    			}
-    			*/
     			
-    			var posCurve = new THREE.Vector3(0,0,0);
-                if(pt.length>1){
+		    			var posCurve = new THREE.Vector3(0,0,0);
+		            if(pt.length>1){
 	    			
-	    			if (pt[0].distanceTo(characterPos)<500){
-	    				pt.shift();
+	    				if (pt[0].distanceTo(characterPos)<500){
+	    					pt.shift();
 	    				
 
-					}
-					posCurve =pt[0];
-				}
-				else 
-				{
-					autoMode = 0;
-				}
+						}
+							posCurve =pt[0];
+						}
+						else 
+						{
+							autoMode = 0;
+						}
 
     			
 
@@ -1440,9 +1341,9 @@ document.getElementById("startButton").style.display = "none";
 	           	smoothPY.shift();
 
             	let handVec = new THREE.Vector3()
-				ballHolder.getWorldPosition(handVec)
-				handVec.y+=6;
-				handVec.y*=1;
+							ballHolder.getWorldPosition(handVec)
+							handVec.y+=6;
+							handVec.y*=1;
             	//controls.target= handVec;
             	//controls.update();
                 // Step world
@@ -1491,18 +1392,16 @@ document.getElementById("startButton").style.display = "none";
                 //mixer.update( deltaTime*0.65 );
 
                 updatePhysics( deltaTime );
-                renderer.clear();
-				renderer.render( activeScene, activeCamera );
+								
+								renderer.render( activeScene, activeCamera );
 
                 requestAnimationFrame( renderFrame );
 
             }
 
-            function setupEventHandlers(){
-
-                window.addEventListener( 'keydown', handleKeyDown, false);
-                window.addEventListener( 'keyup', handleKeyUp, false);
-               
+            function autoChange(){
+ 							document.getElementById("autoButton").style.display = "none";
+ 							pt = [];
             }
 
             function mapChange(){
@@ -1519,11 +1418,6 @@ document.getElementById("startButton").style.display = "none";
             		document.getElementsByClassName("movement-pad")[0].style.display = "none";
             		activeCamera = mapCamera;
             	};  
-            }
-
-            function autoChange(){
- 			document.getElementById("autoButton").style.display = "none";
- 			pt = [];
             }
 
             function shopChange(){
