@@ -102,8 +102,8 @@
             // Heightfield parameters
 const terrainWidthExtents = 3000;
 const terrainDepthExtents = 3000;
-const terrainWidth = 512;
-const terrainDepth = 512;
+const terrainWidth = 256;
+const terrainDepth = 256;
 const terrainHalfWidth = terrainWidth / 2;
 const terrainHalfDepth = terrainDepth / 2;
 const terrainMaxHeight = 300;
@@ -173,6 +173,8 @@ let autoMode = 0;
 
 let positions = [];
 const ARC_SEGMENTS = 200;
+let firstFrame = true;
+
 
 // vertex shader
 THREE.ShaderChunk.fog_pars_vertex += `
@@ -206,6 +208,7 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
 `);
 
 
+
 //MANAGER
 const manager = new THREE.LoadingManager();
 
@@ -216,7 +219,7 @@ manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
 manager.onLoad = function ( ) {
 //console.log( 'Loading complete!');
 geoLoad = 0;
-if(musicLoad==0&&geoLoad==0){ready()};
+if(musicLoad==0&&geoLoad==0){timerReady()};
 };
 
 manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
@@ -229,17 +232,23 @@ Ammo().then(start);
 
 function start () {
 	setupPhysicsWorld();               
-	getHeightData();
 	setupGraphics();
 	setupMusic();
+
+	make_collisionShape();
+	make_borderShape();
+	make_groundShape();
+
+
 	createBall();
 	createInteractiveBall();
 }	
-            
+
+function timerReady(){setTimeout(ready, 3000)};            
 function ready() {
 document.getElementById("startButton").style.display = "block";
-const startButton = document.getElementById( 'startButton' );
-startButton.addEventListener( 'click', levelStart );
+document.getElementById( 'startButton').addEventListener( 'click', levelStart );;
+
 const mapButton = document.getElementById( 'mapButton' );
 mapButton.addEventListener( 'click', mapChange );
 const shopButton = document.getElementById( 'shopButton' );
@@ -248,7 +257,19 @@ const autoButton = document.getElementById( 'autoButton' );
 autoButton.addEventListener( 'click', autoChange );
 }
 
+
+
 function levelStart() {
+
+
+	playerScene.traverse( function( node ) {
+		if ( node.isMesh ) { 
+
+			node.frustumCulled = false;
+			node.onAfterRender = function(){node.frustumCulled = true;node.onAfterRender = function(){};};};
+	});
+
+
 	document.getElementById( 'overlay' ).remove();
 	document.getElementById( 'myBar' ).remove();
 	document.getElementById( 's1' ).remove();
@@ -261,10 +282,16 @@ function levelStart() {
 	addControls();
 	document.getElementById("mapButton").style.display = "block";
 	document.getElementById("shopButton").style.display = "block";
+
+
+
+	
+  //renderer.render( activeScene, activeCamera );
+	sound1.play();
+	sound2.play();
+	sound3.play();
 	renderFrame();
-	sound1.play()
-	sound2.play()
-	sound3.play()
+	
 }
 
 function addControls() {
@@ -348,287 +375,278 @@ function addControls() {
 
 
 
-            function createTriangleShapeByBufferGeometry(geometry, scalingFactor) {
-			        var mesh = new Ammo.btTriangleMesh(true, true);
-			        var vertexPositionArray = geometry.attributes.position.array;
-			        for (var i = 0; i < geometry.attributes.position.count/3; i++) {
-			                mesh.addTriangle(
-			                    new Ammo.btVector3(vertexPositionArray[i*9+0]*scalingFactor, vertexPositionArray[i*9+1]*scalingFactor, vertexPositionArray[i*9+2]*scalingFactor ),
-			                    new Ammo.btVector3(vertexPositionArray[i*9+3]*scalingFactor, vertexPositionArray[i*9+4]*scalingFactor, vertexPositionArray[i*9+5]*scalingFactor),
-			                    new Ammo.btVector3(vertexPositionArray[i*9+6]*scalingFactor, vertexPositionArray[i*9+7]*scalingFactor, vertexPositionArray[i*9+8]*scalingFactor),
-			                    false
-			                );
-			        }
-			        var shape = new Ammo.btBvhTriangleMeshShape(mesh, true, true);
-			        return shape;
-			    }
-			function col_mesh(object){
+            
 
-				let triangle, triangle_mesh = new Ammo.btTriangleMesh();
+function make_collisionShape() {
+    	
+	var collisionShape;
+	const loader = new GLTFLoader().setPath( 'models/gltf/' );
+	loader.load( 'wagon_collision.glb', function ( gltf ) {
+		gltf.scene.traverse( function( node ) {
+			if ( node.isMesh ) {
+				node.updateMatrix();
+				node.updateWorldMatrix(true,false);
+				collisionShape = col_mesh(node);
+		
 
-	            //declare triangles position vectors
-	            let vectA = new Ammo.btVector3(0, 0, 0);
-	            let vectB = new Ammo.btVector3(0, 0, 0);
-	            let vectC = new Ammo.btVector3(0, 0, 0);
-
-	            //retrieve vertices positions from object
-	            let verticesPos = object.geometry.getAttribute('position').array;
-	            let triangles = [];
-	            for (let i = 0; i < verticesPos.length; i += 3) {
-	                triangles.push({
-	                    x: verticesPos[i],
-	                    y: verticesPos[i + 1],
-	                    z: verticesPos[i + 2]
-	                })
-	            }
-
-	            //use triangles data to draw ammo shape
-	            for (let i = 0; i < triangles.length - 3; i += 3) {
-
-	                vectA.setX(triangles[i].x);
-	                vectA.setY(triangles[i].y);
-	                vectA.setZ(triangles[i].z);
-
-	                vectB.setX(triangles[i + 1].x);
-	                vectB.setY(triangles[i + 1].y);
-	                vectB.setZ(triangles[i + 1].z);
-
-	                vectC.setX(triangles[i + 2].x);
-	                vectC.setY(triangles[i + 2].y);
-	                vectC.setZ(triangles[i + 2].z);
-
-	                triangle_mesh.addTriangle(vectA, vectB, vectC, true);
-	            }
-				//Ammo vectors should be destroyed after use to avoid memory leak.
-				Ammo.destroy(vectA);
-	            Ammo.destroy(vectB);
-	            Ammo.destroy(vectC);
-
-				var shape = new Ammo.btBvhTriangleMeshShape(triangle_mesh, true);
-				
-				//var shape = new Ammo.btConvexTriangleMeshShape( triangle_mesh, true);
-				
-				
-				return shape
-
+				collisionShape.setMargin(3);
+	      const colTransform = new Ammo.btTransform();
+					colTransform.setIdentity();
+			
+				colTransform.setOrigin( new Ammo.btVector3( 0, 0, 0 ) );
+				const colMass = 0;
+				const colLocalInertia = new Ammo.btVector3( 0, 0, 0 );
+				const colMotionState = new Ammo.btDefaultMotionState( colTransform );
+				const colBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( colMass, colMotionState, collisionShape, colLocalInertia ) );
+				physicsWorld.addRigidBody( colBody );
 			}
-
-            function make_terrain() {
-            	/*
-            	var collisionShape;
-            	loader.load( 'wagon_collision.glb', function ( gltf ) {
-					gltf.scene.traverse( function( node ) {
-        				if ( node.isMesh ) {
-        					node.updateMatrix();
-        					node.updateWorldMatrix(true,false);
-		        			collisionShape = col_mesh(node);
-						
-
-							collisionShape.setMargin(3);
-			            	const colTransform = new Ammo.btTransform();
-							colTransform.setIdentity();
-							
-							colTransform.setOrigin( new Ammo.btVector3( 0, 0, 0 ) );
-							const colMass = 0;
-							const colLocalInertia = new Ammo.btVector3( 0, 0, 0 );
-							const colMotionState = new Ammo.btDefaultMotionState( colTransform );
-							const colBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( colMass, colMotionState, collisionShape, colLocalInertia ) );
-							physicsWorld.addRigidBody( colBody );
-						}
-    				} );
-					
-				} );
-				*/
-
-	const groundShape = createTerrainShape();
-	//multiple collision landscapes
-	for (let i =tileXmin-1; i <= tileXmax+1; i++) {
-		for (let j =tileZmin-1; j <= tileZmax+1; j++) {
-			const groundTransform = new Ammo.btTransform();
-			groundTransform.setIdentity();
-			// Shifts the terrain, since bullet re-centers it on its bounding box.
-			groundTransform.setOrigin( new Ammo.btVector3( tileStep*j, ( terrainMaxHeight + terrainMinHeight ) / 2, tileStep*i ) );
-			const groundMass = 0;
-			const groundLocalInertia = new Ammo.btVector3( 0, 0, 0 );
-			const groundMotionState = new Ammo.btDefaultMotionState( groundTransform );
-			const groundBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass, groundMotionState, groundShape, groundLocalInertia ) );
-			physicsWorld.addRigidBody( groundBody );
-	}};
-
-				/*
-				for (let i =0; i <= 1; i+=1) {
-					for (let j =-1; j <= 1; j+=2) {
-						let bordersShape;
-						let geometry;
-						let wall_len = 14000;
-						let wall_th = 50;
-						let wall_x = i*j*7000;
-						let wall_z = (1-i)*j*7000;
-						if(i==0){bordersShape = new Ammo.btBoxShape(new Ammo.btVector3(wall_len,500,wall_th));
-						geometry = new THREE.BoxGeometry(wall_len,200,wall_th,wall_len/100,1,1);
-						}
-						if(i!=0){bordersShape = new Ammo.btBoxShape(new Ammo.btVector3(wall_th,500,wall_len));
-						geometry = new THREE.BoxGeometry(wall_th,200,wall_len,1,1,wall_len/100);
-						}					
-						
-						const material = new THREE.MeshBasicMaterial( {color: 0x00ff00,} );
-						material.wireframe = true;
-						const cube = new THREE.Mesh( geometry, material );
-						cube.position.x =wall_x;
-						cube.position.z =wall_z;
-						cube.position.y =100;
-						playerScene.add( cube );	
-		                bordersShape.setMargin( 0.05 );
-						const bordersTransform = new Ammo.btTransform();
-						bordersTransform.setIdentity();
-						bordersTransform.setOrigin(new Ammo.btVector3(wall_x,0,wall_z));
-						const bordersMass = 0;
-						const bordersLocalInertia = new Ammo.btVector3( 0, 0, 0 );
-						const bordersMotionState = new Ammo.btDefaultMotionState( bordersTransform );
-						const bordersBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( bordersMass, bordersMotionState, bordersShape, bordersLocalInertia ) );
-						physicsWorld.addRigidBody( bordersBody );
-				}};
-				*/
+		});
+	});
+}
 				
-				
+function make_groundShape() {
 
+	img = new Image();
+	img.src = "./textures/map.png";
+	var canvas = document.createElement( 'canvas' );
+	canvas.width = terrainWidth;
+	canvas.height = terrainDepth;
+	var context = canvas.getContext( '2d' );
+	var size = terrainWidth * terrainDepth;
+	var data = new Float32Array( size );
+	img.onload = function () {
+		context.drawImage(img,0,0);
+		var imgd = context.getImageData(0, 0, terrainWidth, terrainDepth);
+		var pix = imgd.data;
+		
 
+		for ( var i = 0; i < size; i ++ ) {data[i] = 0}
+		var j=0;
+		for(var i = 0; i<pix.length; i +=4) {var all = pix[i]+pix[i+1]+pix[i+2];data[j++] = all/(12.0)*3.65}
+		heightData = data;
 
-
-				const geometry = new THREE.PlaneGeometry( terrainWidthExtents, terrainDepthExtents, terrainWidth - 1, terrainDepth - 1 );
+		const groundShape = createTerrainShape();
+		//multiple collision landscapes
+		for (let i =tileXmin-2; i <= tileXmax+2; i++) {
+			for (let j =tileZmin-2; j <= tileZmax+2; j++) {
+				const groundTransform = new Ammo.btTransform();
+				groundTransform.setIdentity();
+				// Shifts the terrain, since bullet re-centers it on its bounding box.
+				groundTransform.setOrigin( new Ammo.btVector3( tileStep*j, ( terrainMaxHeight + terrainMinHeight ) / 2, tileStep*i ) );
+				const groundMass = 0;
+				const groundLocalInertia = new Ammo.btVector3( 0, 0, 0 );
+				const groundMotionState = new Ammo.btDefaultMotionState( groundTransform );
+				const groundBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( groundMass, groundMotionState, groundShape, groundLocalInertia ) );
+				physicsWorld.addRigidBody( groundBody );
+		}};
+	}
+						/*
+					const geometry = new THREE.PlaneGeometry( terrainWidthExtents, terrainDepthExtents, terrainWidth - 1, terrainDepth - 1 );
 					geometry.rotateX( - Math.PI / 2 );
-
 					const vertices = geometry.attributes.position.array;
-
 					for ( let i = 0, j = 0, l = vertices.length; i < l; i ++, j += 3 ) {
-
-						// j + 1 because it is the y component that we modify
 						vertices[ j + 1 ] = heightData[ i ];
-
 					}
-
 					geometry.computeVertexNormals();
-
 					//const groundMaterial = new THREE.MeshPhongMaterial( { color: 0xC7C7C7 } );
 					//terrainMesh = new THREE.Mesh( geometry, groundMaterial );
-					//terrainMesh.receiveShadow = true;
-					//terrainMesh.castShadow = true;
 					//scene.add( terrainMesh );
+          */
+}
 
-				}
+function make_borderShape() {				
+	for (let i =0; i <= 1; i+=1) {
+		for (let j =-1; j <= 1; j+=2) {
+			let bordersShape;
+			let geometry;
+			let wall_len = 14000;
+			let wall_th = 50;
+			let wall_x = i*j*7000;
+			let wall_z = (1-i)*j*7000;
+			if(i==0){bordersShape = new Ammo.btBoxShape(new Ammo.btVector3(wall_len,500,wall_th));
+			geometry = new THREE.BoxGeometry(wall_len,200,wall_th,wall_len/100,1,1);
+			}
+			if(i!=0){bordersShape = new Ammo.btBoxShape(new Ammo.btVector3(wall_th,500,wall_len));
+			geometry = new THREE.BoxGeometry(wall_th,200,wall_len,1,1,wall_len/100);
+			}					
+			
+			const material = new THREE.MeshBasicMaterial( {color: 0x00ff00,} );
+			material.wireframe = true;
+			const cube = new THREE.Mesh( geometry, material );
+			cube.position.x =wall_x;
+			cube.position.z =wall_z;
+			cube.position.y =100;
+			playerScene.add( cube );	
+	            bordersShape.setMargin( 0.05 );
+			const bordersTransform = new Ammo.btTransform();
+			bordersTransform.setIdentity();
+			bordersTransform.setOrigin(new Ammo.btVector3(wall_x,0,wall_z));
+			const bordersMass = 0;
+			const bordersLocalInertia = new Ammo.btVector3( 0, 0, 0 );
+			const bordersMotionState = new Ammo.btDefaultMotionState( bordersTransform );
+			const bordersBody = new Ammo.btRigidBody( new Ammo.btRigidBodyConstructionInfo( bordersMass, bordersMotionState, bordersShape, bordersLocalInertia ) );
+			physicsWorld.addRigidBody( bordersBody );
+	}};
+}
+				
 
-			function getHeightData(scale) {
-     
-     			if (scale == undefined) scale=1;
-     			img = new Image();
-     			img.src = "./textures/map.png";
-        		var canvas = document.createElement( 'canvas' );
-        		canvas.width = terrainWidth;
-        		canvas.height = terrainDepth;
-        		var context = canvas.getContext( '2d' );
-        		var size = terrainWidth * terrainDepth;
-        		var data = new Float32Array( size );
-        		img.onload = function () {
-	        		context.drawImage(img,0,0);
-	        		var imgd = context.getImageData(0, 0, terrainWidth, terrainDepth);
-	        		var pix = imgd.data;
-	        		
 
-	        	for ( var i = 0; i < size; i ++ ) {
-	        		    data[i] = 0
-	        		}
+function createTerrainShape() {
 
-        		var j=0;
-        		for(var i = 0; i<pix.length; i +=4) {
-         			var all = pix[i]+pix[i+1]+pix[i+2];
+		// This parameter is not really used, since we are using PHY_FLOAT height data type and hence it is ignored
+		const heightScale = 1;
 
-            		data[j++] = all/(12.0*scale)*3.65
-            		
-        			}
-        			heightData = data;
-	        		make_terrain()
-	        	}	        	
+		// Up axis = 0 for X, 1 for Y, 2 for Z. Normally 1 = Y is used.
+		const upAxis = 1;
 
-        		
+		// hdt, height data type. "PHY_FLOAT" is used. Possible values are "PHY_FLOAT", "PHY_UCHAR", "PHY_SHORT"
+		const hdt = 'PHY_FLOAT';
 
-    		}
+		// Set this to your needs (inverts the triangles)
+		const flipQuadEdges = false;
 
-            function createTerrainShape() {
+		// Creates height data buffer in Ammo heap
+		ammoHeightData = Ammo._malloc( 4 * terrainWidth * terrainDepth );
 
-				// This parameter is not really used, since we are using PHY_FLOAT height data type and hence it is ignored
-				const heightScale = 1;
+		// Copy the javascript height data array to the Ammo one.
+		let p = 0;
+		let p2 = 0;
 
-				// Up axis = 0 for X, 1 for Y, 2 for Z. Normally 1 = Y is used.
-				const upAxis = 1;
+		for ( let j = 0; j < terrainDepth; j ++ ) {
 
-				// hdt, height data type. "PHY_FLOAT" is used. Possible values are "PHY_FLOAT", "PHY_UCHAR", "PHY_SHORT"
-				const hdt = 'PHY_FLOAT';
+			for ( let i = 0; i < terrainWidth; i ++ ) {
 
-				// Set this to your needs (inverts the triangles)
-				const flipQuadEdges = false;
+				// write 32-bit float data to memory
+				Ammo.HEAPF32[ ammoHeightData + p2 >> 2 ] = heightData[ p ];
 
-				// Creates height data buffer in Ammo heap
-				ammoHeightData = Ammo._malloc( 4 * terrainWidth * terrainDepth );
+				p ++;
 
-				// Copy the javascript height data array to the Ammo one.
-				let p = 0;
-				let p2 = 0;
-
-				for ( let j = 0; j < terrainDepth; j ++ ) {
-
-					for ( let i = 0; i < terrainWidth; i ++ ) {
-
-						// write 32-bit float data to memory
-						Ammo.HEAPF32[ ammoHeightData + p2 >> 2 ] = heightData[ p ];
-
-						p ++;
-
-						// 4 bytes/float
-						p2 += 4;
-
-					}
-
-				}
-
-				// Creates the heightfield physics shape
-				const heightFieldShape = new Ammo.btHeightfieldTerrainShape(
-					terrainWidth,
-					terrainDepth,
-					ammoHeightData,
-					heightScale,
-					terrainMinHeight,
-					terrainMaxHeight,
-					upAxis,
-					hdt,
-					flipQuadEdges
-				);
-
-				// Set horizontal scale
-				const scaleX = terrainWidthExtents / ( terrainWidth - 1 );
-				const scaleZ = terrainDepthExtents / ( terrainDepth - 1 );
-				heightFieldShape.setLocalScaling( new Ammo.btVector3( scaleX, 1, scaleZ ) );
-
-				heightFieldShape.setMargin( 1.0 );
-				return heightFieldShape;
+				// 4 bytes/float
+				p2 += 4;
 
 			}
 
-            function setupPhysicsWorld(){
+		}
 
-            	tmpTrans = new Ammo.btTransform();
-                ammoTmpPos = new Ammo.btVector3();
-                ammoTmpQuat = new Ammo.btQuaternion();
+		// Creates the heightfield physics shape
+		const heightFieldShape = new Ammo.btHeightfieldTerrainShape(
+			terrainWidth,
+			terrainDepth,
+			ammoHeightData,
+			heightScale,
+			terrainMinHeight,
+			terrainMaxHeight,
+			upAxis,
+			hdt,
+			flipQuadEdges
+		);
 
-                let collisionConfiguration  = new Ammo.btDefaultCollisionConfiguration(),
-                    dispatcher              = new Ammo.btCollisionDispatcher(collisionConfiguration),
-                    overlappingPairCache    = new Ammo.btDbvtBroadphase(),
-                    solver                  = new Ammo.btSequentialImpulseConstraintSolver();
+		// Set horizontal scale
+		const scaleX = terrainWidthExtents / ( terrainWidth - 1 );
+		const scaleZ = terrainDepthExtents / ( terrainDepth - 1 );
+		heightFieldShape.setLocalScaling( new Ammo.btVector3( scaleX, 1, scaleZ ) );
 
-                physicsWorld           = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-                physicsWorld.setGravity(new Ammo.btVector3(0, -80, 0));
+		heightFieldShape.setMargin( 1.0 );
+		return heightFieldShape;
+
+}
+
+function createTriangleShapeByBufferGeometry(geometry, scalingFactor) {
+  var mesh = new Ammo.btTriangleMesh(true, true);
+  var vertexPositionArray = geometry.attributes.position.array;
+  for (var i = 0; i < geometry.attributes.position.count/3; i++) {
+          mesh.addTriangle(
+              new Ammo.btVector3(vertexPositionArray[i*9+0]*scalingFactor, vertexPositionArray[i*9+1]*scalingFactor, vertexPositionArray[i*9+2]*scalingFactor ),
+              new Ammo.btVector3(vertexPositionArray[i*9+3]*scalingFactor, vertexPositionArray[i*9+4]*scalingFactor, vertexPositionArray[i*9+5]*scalingFactor),
+              new Ammo.btVector3(vertexPositionArray[i*9+6]*scalingFactor, vertexPositionArray[i*9+7]*scalingFactor, vertexPositionArray[i*9+8]*scalingFactor),
+              false
+          );
+  }
+  var shape = new Ammo.btBvhTriangleMeshShape(mesh, true, true);
+  return shape;
+}
+			
+function col_mesh(object){
+
+	let triangle, triangle_mesh = new Ammo.btTriangleMesh();
+
+        //declare triangles position vectors
+        let vectA = new Ammo.btVector3(0, 0, 0);
+        let vectB = new Ammo.btVector3(0, 0, 0);
+        let vectC = new Ammo.btVector3(0, 0, 0);
+
+        //retrieve vertices positions from object
+        let verticesPos = object.geometry.getAttribute('position').array;
+        let triangles = [];
+        for (let i = 0; i < verticesPos.length; i += 3) {
+            triangles.push({
+                x: verticesPos[i],
+                y: verticesPos[i + 1],
+                z: verticesPos[i + 2]
+            })
+        }
+
+        //use triangles data to draw ammo shape
+        for (let i = 0; i < triangles.length - 3; i += 3) {
+
+            vectA.setX(triangles[i].x);
+            vectA.setY(triangles[i].y);
+            vectA.setZ(triangles[i].z);
+
+            vectB.setX(triangles[i + 1].x);
+            vectB.setY(triangles[i + 1].y);
+            vectB.setZ(triangles[i + 1].z);
+
+            vectC.setX(triangles[i + 2].x);
+            vectC.setY(triangles[i + 2].y);
+            vectC.setZ(triangles[i + 2].z);
+
+            triangle_mesh.addTriangle(vectA, vectB, vectC, true);
+        }
+	//Ammo vectors should be destroyed after use to avoid memory leak.
+				Ammo.destroy(vectA);
+        Ammo.destroy(vectB);
+        Ammo.destroy(vectC);
+
+	var shape = new Ammo.btBvhTriangleMeshShape(triangle_mesh, true);	
+	return shape
+}
+
+function setupPhysicsWorld(){
+
+	tmpTrans = new Ammo.btTransform();
+    ammoTmpPos = new Ammo.btVector3();
+    ammoTmpQuat = new Ammo.btQuaternion();
+
+    let collisionConfiguration  = new Ammo.btDefaultCollisionConfiguration(),
+        dispatcher              = new Ammo.btCollisionDispatcher(collisionConfiguration),
+        overlappingPairCache    = new Ammo.btDbvtBroadphase(),
+        solver                  = new Ammo.btSequentialImpulseConstraintSolver();
+
+    physicsWorld           = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+    physicsWorld.setGravity(new Ammo.btVector3(0, -80, 0));
+}
 
 
-            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             function setupMusic(){
             	const listener = new THREE.AudioListener();
@@ -655,7 +673,7 @@ function addControls() {
 					function ( audioBuffer ) {						
 						sound1.setBuffer( audioBuffer );
 						musicLoad-=1;
-						if(musicLoad==0&&geoLoad==0){ready()};
+						if(musicLoad==0&&geoLoad==0){timerReady()};
 						console.log( 'song1 play' );
 						var elem = document.getElementById("s1");
 						elem.value = 100;
@@ -670,7 +688,7 @@ function addControls() {
 						console.log( 'song2 play' );
 						sound2.setBuffer( audioBuffer );
 						musicLoad-=1;
-						if(musicLoad==0&&geoLoad==0){ready()};
+						if(musicLoad==0&&geoLoad==0){timerReady()};
 						console.log( 'song2 play' );
 						var elem = document.getElementById("s2");
 						elem.value = 100;
@@ -685,7 +703,7 @@ function addControls() {
 						console.log( 'song3 play' );						
 						sound3.setBuffer( audioBuffer );
 						musicLoad-=1;
-						if(musicLoad==0&&geoLoad==0){ready()};
+						if(musicLoad==0&&geoLoad==0){timerReady()};
 						var elem = document.getElementById("s3");
 						elem.value = 100;
 						},
@@ -811,10 +829,10 @@ function addControls() {
 				renderer.outputEncoding = THREE.sRGBEncoding;
 				renderer.shadowMap.enabled = true;
 
-				renderer.debug.checkShaderErrors = false;
+				//renderer.debug.checkShaderErrors = false;
 
-				renderer.compile(playerScene,playerCamera);
-				renderer.getContext().getProgramInfoLog= function() { return '' }
+				//renderer.compile(playerScene,playerCamera);
+				//renderer.getContext().getProgramInfoLog= function() { return '' }
 				container = document.body.appendChild( renderer.domElement );
 				
 
@@ -882,19 +900,19 @@ function addControls() {
     						roughness: 0.2
 						} );                
 
-				//loader.load( 'ha_ktx.glb', function ( gltf ) {
-					//gltf.scene.traverse( function( node ) {
-        	//			if ( node.isMesh ) { node.castShadow = true; }
-    			//	} );
+				loader.load( 'ha_ktx.glb', function ( gltf ) {
+					gltf.scene.traverse( function( node ) {
+        				if ( node.isMesh ) { node.castShadow = true; }
+    				} );
 					
-					//mixer = new THREE.AnimationMixer( gltf.scene );
-					//var action = mixer.clipAction( gltf.animations[ 0 ] );
-					//console.log(gltf.animations[ 0 ])
-					//action.play();
-					//gltf.scene.rotation.y = 3.14;
-					//hover.add( gltf.scene );
+					mixer = new THREE.AnimationMixer( gltf.scene );
+					var action = mixer.clipAction( gltf.animations[ 0 ] );
+					console.log(gltf.animations[ 0 ])
+					action.play();
+					gltf.scene.rotation.y = 3.14;
+					hover.add( gltf.scene );
 					
-				//} );
+				} );		
 
 				hover.scale.set(5,5,5); 
 				ballHolder.add( hover );
@@ -984,7 +1002,7 @@ function addControls() {
 							copy.receiveShadow = true;
 							copy.position.x+=tileStep*j;
 							copy.position.z+=tileStep*i;
-							//playerScene.add(copy);
+							playerScene.add(copy);
 					}}
 
 				} );
@@ -1000,7 +1018,7 @@ function addControls() {
 							copy.receiveShadow = true;
 							copy.position.x+=tileStep*j;
 							copy.position.z+=tileStep*i;
-							//playerScene.add(copy);
+							playerScene.add(copy);
 					}}
 				} );
 				
@@ -1050,6 +1068,7 @@ function addControls() {
 						gltf.scene.applyMatrix4(place.matrixWorld);
 						playerScene.add(gltf.scene);
 					} );
+					/*
 					loader.load( 'wagon04_comb_ble.glb', function ( gltf ) {
 						gltf.scene.traverse( function( node ) {
         					if ( node.isMesh ) { 
@@ -1076,7 +1095,7 @@ function addControls() {
 						gltf.scene.applyMatrix4(place.matrixWorld);
 						playerScene.add(gltf.scene);
 					} );
-								
+				*/	
 				} );
 				
 
@@ -1105,9 +1124,9 @@ function addControls() {
 					gltf.scene.getObjectByName('station02_tube_out').material.alphaMap = alphaMap;
 					gltf.scene.getObjectByName('station02_tube_out').material.transparent = true;
 					sc02 = gltf.scene;
-					//playerScene.add( sc02.clone() );
+					playerScene.add( sc02.clone() );
 					intersect_map.push(sc02);
-					//mapScene.add(sc02);
+					mapScene.add(sc02);
 				} );
 				loader.load( 'station03.glb', function ( gltf ) {
 
@@ -1118,9 +1137,9 @@ function addControls() {
 					
 					sc03 = gltf.scene;
 
-					//playerScene.add( sc03.clone() );
+					playerScene.add( sc03.clone() );
 					intersect_map.push(sc03);
-					//mapScene.add(sc03);
+					mapScene.add(sc03);
 					
 				} );
 				loader.load( 'station04.glb', function ( gltf ) {
@@ -1130,8 +1149,14 @@ function addControls() {
 
 					gltf.scene.getObjectByName('station04_out').material = sphereMaterial;
 
-					//playerScene.add( gltf.scene );
+					playerScene.add( gltf.scene );
 				} );
+
+
+
+
+
+
             }
             function createInteractiveBall(){
                 
@@ -1188,7 +1213,7 @@ function addControls() {
 
             function createBall(){
                 
-                let pos = {x: 0, y: 200, z: 0};
+                let pos = {x: 0, y: 80, z: 150};
                 let radius = 12;
                 let quat = {x: 0, y: 0, z: 0, w: 1};
                 let mass = 1;
@@ -1245,39 +1270,23 @@ function addControls() {
             function moveBall(){
 
 
-            	var characterPos = new THREE.Vector3();
-            	var characterDir = new THREE.Vector3()
-                ballHolder.getWorldPosition( characterPos );
-                ballHolder.getWorldDirection( characterDir );
-    			
-		    			var posCurve = new THREE.Vector3(0,0,0);
-		            if(pt.length>1){
-	    			
-	    				if (pt[0].distanceTo(characterPos)<500){
-	    					pt.shift();
-	    				
+var characterPos = new THREE.Vector3();
+var characterDir = new THREE.Vector3()
+ballHolder.getWorldPosition( characterPos );
+ballHolder.getWorldDirection( characterDir );
 
-						}
-							posCurve =pt[0];
-						}
-						else 
-						{
-							autoMode = 0;
-						}
+var posCurve = new THREE.Vector3(0,0,0);
+if(pt.length>1){
+	if (pt[0].distanceTo(characterPos)<500){pt.shift();}
+	posCurve =pt[0];
+	}
+	else 
+	{
+	autoMode = 0;
+	}
 
-    			
-
-                let scalingFactor = 5;
-
-                moveX +=  kMoveDirection.right - kMoveDirection.left;
-                moveZ +=  kMoveDirection.back - kMoveDirection.forward;
-                let moveY =  0;
-                
-                //if(moveZ == 0) return;
 
                 
-                
-                var testtt = posCurve;
 
                 let autoDir = new THREE.Vector3();
                 if(posCurve){autoDir = posCurve.clone().sub(characterPos)};
@@ -1286,7 +1295,7 @@ function addControls() {
                 autoDir.normalize();
                 //console.log(autoDir)
 
-                let resultantImpulse
+                let resultantImpulse;
                 if(!autoMode){
 	                smoothI.push(moveX); 
 	                ballHolder.rotation.y-=(smoothI.reduce((a,b) => (a+b)) / smoothI.length)*0.022;
@@ -1301,7 +1310,7 @@ function addControls() {
 	            }
 
                 
-                resultantImpulse.op_mul(scalingFactor);
+                resultantImpulse.op_mul(5);
 
                 let physicsBody = ballObject.userData.physicsBody;
                 let test = physicsBody.getLinearVelocity();
@@ -1349,7 +1358,7 @@ function addControls() {
                 // Step world
                 
 
-                physicsWorld.stepSimulation( deltaTime,10);
+                physicsWorld.stepSimulation( deltaTime,1);
 
 
                 // Update rigid bodies
@@ -1373,7 +1382,12 @@ function addControls() {
             function renderFrame(){
 
                 let deltaTime = clock.getDelta();
+
                 
+    						
+                
+                
+
                 //animPolesTexture.map.offset.y += deltaTime*0.3;
 
                 //sc01.children[0].children[0].rotation.y +=deltaTime*0.3;
@@ -1389,11 +1403,11 @@ function addControls() {
                 playerCamera.getWorldPosition(mapCamera.position);
                 mapCamera.position.y = 4000;
 
-                //mixer.update( deltaTime*0.65 );
+                mixer.update( deltaTime*0.65 );
 
                 updatePhysics( deltaTime );
-								
-								renderer.render( activeScene, activeCamera );
+    						
+    						renderer.render( activeScene, activeCamera );
 
                 requestAnimationFrame( renderFrame );
 
