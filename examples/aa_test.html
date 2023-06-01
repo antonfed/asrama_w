@@ -270,7 +270,6 @@ autoButton.addEventListener( 'click', autoChange );
 
 function levelStart() {
 
-	console.log(playerScene.animations)
 	playerScene.traverse( function( node ) {
 		if ( node.isMesh ) { 
 
@@ -899,7 +898,6 @@ function setupPhysicsWorld(){
 					
 					mixer = new THREE.AnimationMixer( gltf.scene );
 					var action = mixer.clipAction( gltf.animations[ 0 ] );
-					//console.log(gltf.animations[ 0 ])
 					action.play();
 					gltf.scene.rotation.y = 3.14;
 					hover.add( gltf.scene );
@@ -932,7 +930,16 @@ loader.load( 'optimized/land.glb', function ( gltf ) {
 	const parser = gltf.parser;
 	for (let i =tileXmin; i <= tileXmax; i++) {
 		for (let j =tileZmin; j <= tileZmax; j++) {
-			gltf.scene.traverse( async function( mvar ) {
+
+							const lod = new THREE.LOD();
+							const lod00 = gltf.scene;
+              const lod01 = new THREE.Object3D();
+              lod.addLevel( lod00, 1500 );
+              lod.addLevel( lod01, 2000 );
+              const obj = lod.clone();
+
+			obj.levels[0].object.traverse( async function( mvar ) {
+
 				if ( mvar.isMesh ) {
 					const meshVariantDef = mvar.userData.gltfExtensions[ 'KHR_materials_variants' ];
 					if ( ! meshVariantDef ) return;
@@ -968,12 +975,14 @@ loader.load( 'optimized/land.glb', function ( gltf ) {
 
 
 					var copy = mvar.clone();
-					copy.receiveShadow = true;
-					copy.position.x+=tileStep*j;
-					copy.position.z+=tileStep*i;
-					playerScene.add(copy);
+					
+					//playerScene.add(copy);
 			}
 		});
+		obj.receiveShadow = true;
+		obj.position.x+=tileStep*j;
+		obj.position.z+=tileStep*i;
+		playerScene.add(obj);
 	}}
 });
 
@@ -996,12 +1005,12 @@ loader.load( 'optimized/land.glb', function ( gltf ) {
 				
 
 				loader.load( 'wagon_placer.glb', function ( gltf ) {	
-					var placer = gltf.scene;									
+					const placer = gltf.scene;									
 					
 					gltf.scene.traverse( function( node ) {
         		if(node.name.includes("PL_")){
-        			var obj_name = node.name.split("PL_")[1];
-        			var path = 'optimized/'+obj_name+'.glb';
+        			const obj_name = node.name.split("PL_")[1];
+        			const path = 'optimized/'+obj_name+'.glb';
         			loader.load(path, function ( gltf ) {
 	        			gltf.scene.traverse( function( node ) {
 	        					if ( node.isMesh ) { 
@@ -1009,11 +1018,19 @@ loader.load( 'optimized/land.glb', function ( gltf ) {
 	        						}
 	    					} );
 							
+	        		const lod = new THREE.LOD();
+							const lod00 = gltf.scene;
+              const lod01 = new THREE.Object3D();
+              lod.addLevel( lod00, 1000 );
+              lod.addLevel( lod01, 1500 );
+
+              const obj = lod.clone();
+
 							const place = placer.getObjectByName(node.name);
 							place.updateWorldMatrix(true,false);							
-							gltf.scene.applyMatrix4(place.matrixWorld);
-							playerScene.add(gltf.scene);
-							} );
+							obj.applyMatrix4(place.matrixWorld);
+							playerScene.add(obj);
+							});
         		}
         	}	);
 
@@ -1026,14 +1043,7 @@ loader.load( 'optimized/land.glb', function ( gltf ) {
 					const elements = placer.scene.children[0].children[0].children;
 					elements.forEach(function (element) {
 						const path ='optimized/'+element.name+'.glb';
-						loader.load(path, function ( gltf ) {
-							
-							gltf.scene.traverse(async function( node ) {
-								if( element.name.includes("textpillar_opt")){																
-		        			node.material.emissiveMap = await a_texture;
-		        			console.log(node.material);
-	        			}
-	        		});
+						loader.load(path, function ( gltf ) {							
 
 							const lod = new THREE.LOD();
 							const lod00 = gltf.scene;
@@ -1047,22 +1057,47 @@ loader.load( 'optimized/land.glb', function ( gltf ) {
 								const obj = lod.clone();
 								element.updateWorldMatrix(true,false);								
 								obj.applyMatrix4(element.matrixWorld);
-								
+
+								//MATERIAL VARIANTS
+								const parser = gltf.parser;
+								obj.levels[0].object.traverse(async function( mvar ) {
+									if ( mvar.isMesh ) {
+									//material variants
+									try {
+									const meshVariantDef = mvar.userData.gltfExtensions[ 'KHR_materials_variants' ];
+									if ( ! meshVariantDef ) return;
+
+									const mapping = meshVariantDef.mappings.find( ( mapping ) => mapping.variants.includes( Number(element.name.split("PL_")[2]) ) );
+									mvar.material = await parser.getDependency( 'material', mapping.material );
+			   					
+			   					parser.assignFinalMaterial( mvar );
+			   					mvar.material.envMap = textureCube;
+			   					
+			   					} 
+			   					catch (error) {
+									//console.log(error)
+									}
+									if(element.name.includes("textpillar_opt")){							
+		        			mvar.material.emissiveMap = a_texture;
+	        				}
+								}
+								});
+								//ANIMATION
 								if(element.name.includes("wind")){						
-		        			var mixer_fan = new THREE.AnimationMixer( obj );
-									var action = mixer_fan.clipAction( gltf.animations[ 0 ] )
+		        			const mixer_fan = new THREE.AnimationMixer( obj );
+									const action = mixer_fan.clipAction( gltf.animations[ 0 ] )
 									action.play();
 									mixers.push(mixer_fan); 
 								}
 								if(element.name.includes("aircone")){							
-		        			var mixer_fan = new THREE.AnimationMixer( obj );
-									var action = mixer_fan.clipAction( gltf.animations[ 0 ] )
+		        			const mixer_fan = new THREE.AnimationMixer( obj );
+									const action = mixer_fan.clipAction( gltf.animations[ 0 ] )
 									action.play();
 									mixers.push(mixer_fan);
 								}
 								if(element.name.includes("vetro")){							
-		        			var mixer_fan = new THREE.AnimationMixer( obj );
-									var action = mixer_fan.clipAction( gltf.animations[ 0 ] )
+		        			const mixer_fan = new THREE.AnimationMixer( obj );
+									const action = mixer_fan.clipAction( gltf.animations[ 0 ] )
 									action.play();
 									mixers.push(mixer_fan);
 								}
@@ -1071,79 +1106,7 @@ loader.load( 'optimized/land.glb', function ( gltf ) {
 							});
 						});
 					});
-					console.log(mixers);
-					/*
-					var placer = gltf.scene;									
-					
-					gltf.scene.traverse( function( node ) {
-        		
-
-        		if(node.name.includes("PL_")){
-        			var obj_name = node.name.split("PL_")[1];
-        			var path = 'optimized/'+obj_name+'.glb';
-        			loader.load(path, function ( gltf ) {
-
-							const parser = gltf.parser;
-
-
-							//object modification before placement
-							gltf.scene.traverse( async function( mvar ) {
-								
-								if ( mvar.isMesh ) {
-									//material variants
-									try {
-									const meshVariantDef = mvar.userData.gltfExtensions[ 'KHR_materials_variants' ];
-									if ( ! meshVariantDef ) return;
-
-									const mapping = meshVariantDef.mappings.find( ( mapping ) => mapping.variants.includes( Number(node.name.split("PL_")[2]) ) );
-									mvar.material = await parser.getDependency( 'material', mapping.material );
-			   					
-			   					parser.assignFinalMaterial( mvar );
-			   					mvar.material.envMap = textureCube;
-			   					
-			   					} catch (error) {
-									//console.log(node.name)
-									}
-									//animation to the pillars
-									if(node.name.includes("textpillar_opt")){							
-		        			mvar.material.emissiveMap = a_texture;
-	        				}
-	        			}
-
-	        			if(node.name.includes("wind")){							
-		        			var mixer_fan = new THREE.AnimationMixer( gltf.scene );
-									var action = mixer_fan.clipAction( gltf.animations[ 0 ] )
-									action.play();
-									mixers.push(mixer_fan);
-								}
-								if(node.name.includes("vetro")){							
-		        			var mixer_fan = new THREE.AnimationMixer( gltf.scene );
-									var action = mixer_fan.clipAction( gltf.animations[ 0 ] )
-									action.play();
-									mixers.push(mixer_fan);
-								}
-								if(node.name.includes("aircone")){							
-		        			var mixer_fan = new THREE.AnimationMixer( gltf.scene );
-									var action = mixer_fan.clipAction( gltf.animations[ 0 ] )
-									action.play();
-									mixers.push(mixer_fan);
-								}
-
-							} );
-
-							
-
-							
-							
-							const place = placer.getObjectByName(node.name);
-							place.updateWorldMatrix(true,false);								
-							gltf.scene.applyMatrix4(place.matrixWorld);
-							playerScene.add(gltf.scene);
-							} );
-        		}
-        	}	);
-					*/
-				} );
+				});
 				
 
 
@@ -1238,7 +1201,6 @@ loader.load( 'optimized/land.glb', function ( gltf ) {
                 let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
                 let body = new Ammo.btRigidBody( rbInfo );
                 //body.fixedTimeStep = 1 / 500;
-                //console.log(body);
                 //body.setFriction(2000000);
                 //body.setRollingFriction(20000000);
                 //body.setRollingFriction(20000000);
@@ -1290,7 +1252,6 @@ loader.load( 'optimized/land.glb', function ( gltf ) {
                 let rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, colShape, localInertia );
                 let body = new Ammo.btRigidBody( rbInfo );
                 //body.fixedTimeStep = 1 / 500;
-                //console.log(body);
                 //body.setFriction(2000000);
                 //body.setRollingFriction(20000000);
                 //body.setRollingFriction(20000000);
@@ -1338,7 +1299,6 @@ if(pt.length>1){
                 
                 autoDir.y = 0;		
                 autoDir.normalize();
-                //console.log(autoDir)
 
                 let resultantImpulse;
                 if(!autoMode){
