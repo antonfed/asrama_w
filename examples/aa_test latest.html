@@ -157,6 +157,8 @@ let tileZmin = -2;
 let tileZmax = 2;
 let tileStep = -3001.5;
 
+let musicLoad = 3;
+let geoLoad = 1;
 let sound1,sound2,sound3;
 
 let mapCamera;
@@ -192,16 +194,13 @@ let animTexture01;
 let botTimer=0;
 let bots = [];
 let lastId = 0;
-
 let visitList = [];
 let prevStation;
 let prevPrevStation;
 let map;
 let mainFont;
 
-let interactList = [];
-
-let loaderList = ["bot_hover","bot_model","player_hover","player_model","sky","land","theater","wagons","objects","bounds","station01","station02","station03","station04","music01","music02","music03"];
+let loaderList = ["bot_hover","bot_model","player_hover","player_model","sky","land","theater","wagons","objects","bounds","station01","station02","station03","station04"]
 
 // vertex shader
 THREE.ShaderChunk.fog_pars_vertex += `
@@ -234,32 +233,43 @@ THREE.ShaderChunk.fog_fragment = THREE.ShaderChunk.fog_fragment.replace(FOG_APPL
   ${FOG_APPLIED_LINE}
 `);
 
+
+
+//MANAGER
 const manager = new THREE.LoadingManager();
+
 manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
+//console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
 };
+
+manager.onLoad = function ( ) {
+//console.log( 'Loading complete!');
+if(musicLoad==0&&geoLoad==0){timerReady()};
+};
+
 manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
 var elem = document.getElementById("myBar");
 elem.value = itemsLoaded/itemsTotal*100;
+//console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
 };	
 			
 Ammo().then(start);
+
 async function start () {
 	setupPhysicsWorld();               
 	setupGraphics();
 	setupMusic();
+
 	make_collisionShape();
 	make_borderShape();
 	make_groundShape();
 	createBall();
-	createInteractiveBall();	
-}
+	createInteractiveBall();
+	
 
-function progressLoad(item){
-	var index = loaderList.indexOf(item);
-		if (index !== -1) {loaderList.splice(index, 1);}
-  	if(loaderList.length == 0)ready();
 }	
-      
+
+function timerReady(){setTimeout(ready, 3000)};            
 function ready() {
 document.getElementById("startButton").style.display = "block";
 document.getElementById( 'startButton').addEventListener( 'click', levelStart );;
@@ -272,12 +282,17 @@ const autoButton = document.getElementById( 'autoButton' );
 autoButton.addEventListener( 'click', autoChange );
 }
 
+geoLoad=0;
+
 function levelStart() {
+
 	playerScene.traverse( function( node ) {
 		if ( node.isMesh ) { 
+
 			node.frustumCulled = false;
 			node.onAfterRender = function(){node.frustumCulled = true;node.onAfterRender = function(){};};};
 	});
+
 
 	document.getElementById( 'overlay' ).remove();
 	document.getElementById( 'myBar' ).remove();
@@ -297,39 +312,18 @@ function levelStart() {
 	sound3.play();
 	map = new mapPath()
 	animTexture01.play();
-	renderFrame();	
+	renderFrame();
+	
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+function progressLoad(item){
+	var index = loaderList.indexOf(item);
+		if (index !== -1) {
+  	loaderList.splice(index, 1);
+  }
+  	console.log(loaderList);
+  	if(loaderList.length = 0)geoLoad=1;
+}
 
 
 function addControls() {
@@ -353,6 +347,127 @@ function addControls() {
 	ctrl = new TouchControls(document.body, camera_mew, options);
 }
 
+
+
+class mapPath{	
+	constructor(){
+		document.addEventListener( 'mousedown', this.onDocumentMouseDown.bind(this) );
+
+		this.characterCurve = new THREE.CatmullRomCurve3()
+		this.numInstances = 50;
+		this.geoBox = this.createArrow();
+		this.geoBox.rotateX( Math.PI/2 );
+		this.geoBox.scale(20,20,20);
+		this.materialBox = new THREE.MeshPhongMaterial( { color: 0x000000, wireframe: false } );
+		this.flow = new InstancedFlow(this.numInstances,1, this.geoBox,this.materialBox );
+		mapScene.add( this.flow.object3D );
+		this.flow.object3D.position.y=300;
+	}
+
+	update(deltaTime){
+		for(let i = 0;i<this.numInstances;i++){
+			this.flow.moveIndividualAlongCurve(i,deltaTime*0.1);
+		}
+	}
+	
+	createArrow(){
+		let	geometry = new TextGeometry( '>', {
+			font: mainFont,
+			size: 10,
+			height: 1,
+		} );
+		return geometry;		
+	}
+
+	createCharacterPath(pos){
+    characterCurve = new THREE.CatmullRomCurve3(pos);
+    characterCurve.curveType = "catmullrom";
+    characterCurve.tension = 0;
+		pt = characterCurve.getPoints( 30 );
+		const geometry = new THREE.BufferGeometry().setFromPoints( pt );
+
+		const material = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+
+		// Create the final object to add to the scene
+		const curveObject = new THREE.Line( geometry, material );
+		mapScene.remove(characterPath);
+		characterPath = curveObject;
+		mapScene.add(characterPath);
+		this.flow.updateCurve( 0, characterCurve );
+		for(let i = 0;i<this.numInstances;i++){
+			this.flow.setCurve(i,0);
+			
+			//var st = i*1.0/20;
+			var st = (300.0*i)/characterCurve.getLength();
+
+			this.flow.moveIndividualAlongCurve(i,0);
+			st =THREE.MathUtils.clamp(st,0,1);
+		  st =THREE.MathUtils.mapLinear(st,0,1,0.2,0.8);
+			this.flow.offsets[i]=st;
+		}
+	}
+
+			
+	onDocumentMouseDown( event ) {    
+    if(activeCamera == mapCamera){
+    	event.preventDefault();
+      var mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   
+                              -( event.clientY / window.innerHeight ) * 2 + 1,  
+                              0.5 );
+      var playerWP = new THREE.Vector3();                             
+      var targetWP = new THREE.Vector3();
+      var raycaster = new THREE.Raycaster();                                        
+     	raycaster.setFromCamera( mouse3D, mapCamera );
+      var intersects = raycaster.intersectObjects( intersect_map );
+      if ( intersects.length > 0 ) {
+
+      	var obj = intersects[ 0 ].object;
+      	
+      	if(prevStation != obj){
+      		if(prevPrevStation != obj){
+        	obj.getWorldPosition(targetWP);
+					ballHolder.getWorldPosition(playerWP);
+					targetWP.y=0;
+					playerWP.y=0;
+          visitList.push(targetWP);
+          var pos = []
+          pos.push(playerWP);
+          pos = pos.concat(visitList);
+        
+        prevPrevStation = prevStation;
+        prevStation = obj;
+        console.log(prevStation);
+        autoMode = 1;
+	  document.getElementById("autoButton").style.display = "block";
+		this.createCharacterPath(pos);
+		}}
+	if(activeCamera == playerCamera){
+    	event.preventDefault();
+      var mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   
+                              -( event.clientY / window.innerHeight ) * 2 + 1,  
+                              0.5 );
+      var playerWP = new THREE.Vector3();                             
+      var targetWP = new THREE.Vector3();
+      var raycaster = new THREE.Raycaster();                                        
+     	raycaster.setFromCamera( mouse3D, mapCamera );
+      var intersects = raycaster.intersectObjects( playerScene.children );
+      if ( intersects.length > 0 ) {
+      	console.log(intersectsP[0])
+		}}
+		}
+	  }
+	}
+}
+
+
+				
+
+
+
+
+
+
+            
 
 function make_collisionShape() {
     	
@@ -604,653 +719,603 @@ function setupPhysicsWorld(){
     physicsWorld.setGravity(new Ammo.btVector3(0, -80, 0));
 }
 
-function setupMusic(){
- 	const listener = new THREE.AudioListener();
-	playerCamera.add( listener );
-
-	sound1 = new THREE.PositionalAudio( listener );
-	sound1.setLoop(true);
-	sound2 = new THREE.PositionalAudio( listener );
-	sound2.setLoop(true);
-	sound3 = new THREE.PositionalAudio( listener );
-	sound3.setLoop(true);
-
-	const loaderMusic = new THREE.AudioLoader(manager);
-
-	loaderMusic.load('sounds/radio01_x.mp3',
-		function ( audioBuffer ) {						
-			sound1.setBuffer( audioBuffer );
-			progressLoad("music01")
-			console.log( 'song1 play' );
-			var elem = document.getElementById("s1");
-			elem.value = 100;
-		},
-		function ( xhr ) {},
-		function ( err ) {console.log( 'An error happened' );}
-	);
-
-	loaderMusic.load('sounds/radio02_x.mp3',
-		function ( audioBuffer ) {						
-			console.log( 'song2 play' );
-			sound2.setBuffer( audioBuffer );
-			progressLoad("music02")
-			console.log( 'song2 play' );
-			var elem = document.getElementById("s2");
-			elem.value = 100;
-		},
-		function ( xhr ) {},
-		function ( err ) {console.log( 'An error happened' );}
-	);
-
-	loaderMusic.load('sounds/radio03.mp3',
-		function ( audioBuffer ) {
-			console.log( 'song3 play' );						
-			sound3.setBuffer( audioBuffer );
-			progressLoad("music03")
-			var elem = document.getElementById("s3");
-			elem.value = 100;
-		},
-		function ( xhr ) {},
-		function ( err ) {console.log( 'An error happened' );}
-	);
-
-	sound1.setRefDistance( 1300 );
-	sound1.setDistanceModel("exponential")
-	sound1.setRolloffFactor(6);
-
-	sound2.setRefDistance( 1300 );
-	sound2.setDistanceModel("exponential")
-	sound2.setRolloffFactor(6);
-
-	sound3.setRefDistance( 1300 );
-	sound3.setRolloffFactor(6);
-	sound3.setDistanceModel("exponential")
-	
-	const material1 = new THREE.MeshPhongMaterial( { color: 0xffaa00, flatShading: true, shininess: 0 } );
-	const sphere = new THREE.SphereGeometry( 20, 32, 16 );
-
-	const mesh1 = new THREE.Mesh( sphere, material1 );
-	mesh1.position.set( 0, 0, 0 );				
-	const mesh2 = new THREE.Mesh( sphere, material1 );
-	mesh2.position.set( -3000, 0, 0 );
-	const mesh3 = new THREE.Mesh( sphere, material1 );
-	mesh3.position.set( -3000, 0, -3000 );
-	mesh1.add( sound1 );
-	mesh2.add( sound2 );
-	mesh3.add( sound3 );
-	playerScene.add( mesh2 );
-	playerScene.add( mesh3 );
-	playerScene.add( mesh1 );								
-}
-
-function setupGraphics(){
-	//create clock for timing
-	clock = new THREE.Clock();
-
-	//create the scene
-	playerScene = new THREE.Scene();
-	mapScene = new THREE.Scene();
-	activeScene = playerScene;
-
-	playerScene.background = new THREE.Color( 0xbfd1e5 );
-	mapScene.background = new THREE.Color( 0xffddc4 );
-
-	var amb_map =  new THREE.AmbientLight( 0xf0f0f0 )
-	amb_map.intensity = 1;
-	mapScene.add(amb_map);
-
-	var amb =  new THREE.AmbientLight( 0xf0f0f0 )
-	amb.intensity = 0.5;
-	playerScene.add(amb);
-	playerScene.fog = new THREE.FogExp2( 0xf7e0c8, 0.003 );
-
-	playerCamera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 10000 );
-	mapCamera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 20000 );
-	shopCamera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
-	activeCamera = playerCamera;
-	shopCamera.position.set( 60, 80, -80);
 
 
-	mapCameraHolder = new THREE.Object3D();
-
-	mapCamera.position.set( 0, 10000, 0 );
 
 
-	mapCameraHolder.rotation.x = THREE.MathUtils.degToRad(60);
-	mapCameraHolder.rotation.z = THREE.MathUtils.degToRad(-27);
-
-	mapCameraHolder.add(mapCamera);
-	mapScene.add(mapCameraHolder);
-
-	const target = new THREE.Vector3(0,0,0);
-	mapCameraHolder.updateWorldMatrix(true,false);
-	mapCameraHolder.getWorldPosition(target);
-	mapCamera.up.set(0, 1, 0);
-	mapCamera.lookAt(target);
-
-	playerCamera.position.set( 0, 10, 30 );
-	playerCamera.rotation.set( -0.1, 0, 0 );
-	cameraHolder.add(playerCamera);
-	ballHolder.add(cameraHolder);
-
-	mapCamera.zoom = 0.2;
-	mapCamera.updateProjectionMatrix();
-
-		
-
-	//Add directional light
-	dirLight = new THREE.DirectionalLight( 0xffc68a , 1);
-	//dirLight.color.setHSL( 0.1, 1, 0.95 );
-	dirLight.position.set( -1, 1.75, 1 );
-	dirLight.position.multiplyScalar( 100 );
-
-	dirLight.castShadow = true;
-	dirLight.intensity = 1;
-
-	dirLight.shadow.mapSize.width = 2048;
-	dirLight.shadow.mapSize.height = 2048;
-
-	dirLight.shadow.radius =7;
-
-	let d = 30;
-
-	dirLight.shadow.camera.left = -d;
-	dirLight.shadow.camera.right = d;
-	dirLight.shadow.camera.top = d;
-	dirLight.shadow.camera.bottom = -d;
-
-	dirLight.shadow.camera.far = 13500;
-
-	dirLight.target.position.y = -1;
-	dirLight.target.position.z = -1;
-	dirLight.target.position.x = -1;
-	ballHolder.add(dirLight);
-	ballHolder.add(dirLight.target);
-
-	       
-	renderer = new THREE.WebGLRenderer( { antialias: true } );
-	renderer.setPixelRatio( window.devicePixelRatio );
-	renderer.setSize( window.innerWidth, window.innerHeight );
-	renderer.toneMapping = THREE.ACESFilmicToneMapping;
-	renderer.toneMappingExposure = 1;
-	renderer.outputEncoding = THREE.sRGBEncoding;
-	renderer.shadowMap.enabled = true;
-
-	//renderer.debug.checkShaderErrors = false;
-
-	//renderer.compile(playerScene,playerCamera);
-	//renderer.getContext().getProgramInfoLog= function() { return '' }
-	container = document.body.appendChild( renderer.domElement );
 
 
-	//LOADER
-	const dracoLoader = new DRACOLoader().setDecoderPath('jsm/libs/draco/');
-	const ktx2Loader = new KTX2Loader().setTranscoderPath( 'jsm/libs/basis/' ).detectSupport( renderer );
-	const loaderFbx = new FBXLoader().setPath( 'models/gltf/' );
-	const loader = new GLTFLoader().setPath( 'models/gltf/' );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            function setupMusic(){
+            	const listener = new THREE.AudioListener();
+				playerCamera.add( listener );
+
+				//SPHERE
+
+				const material1 = new THREE.MeshPhongMaterial( { color: 0xffaa00, flatShading: true, shininess: 0 } );
+				const sphere = new THREE.SphereGeometry( 20, 32, 16 );
+
+
+
+            	
+
+				sound1 = new THREE.PositionalAudio( listener );
+				sound1.setLoop(true);
+				sound2 = new THREE.PositionalAudio( listener );
+				sound2.setLoop(true);
+				sound3 = new THREE.PositionalAudio( listener );
+				sound3.setLoop(true);
+
+				const loaderMusic = new THREE.AudioLoader(manager);
+				loaderMusic.load('sounds/radio01_x.mp3',
+					function ( audioBuffer ) {						
+						sound1.setBuffer( audioBuffer );
+						musicLoad-=1;
+						if(musicLoad==0&&geoLoad==0){timerReady()};
+						console.log( 'song1 play' );
+						var elem = document.getElementById("s1");
+						elem.value = 100;
+						},
+					function ( xhr ) {
+						
+					},
+					function ( err ) {console.log( 'An error happened' );}
+				);
+				loaderMusic.load('sounds/radio02_x.mp3',
+					function ( audioBuffer ) {						
+						console.log( 'song2 play' );
+						sound2.setBuffer( audioBuffer );
+						musicLoad-=1;
+						if(musicLoad==0&&geoLoad==0){timerReady()};
+						console.log( 'song2 play' );
+						var elem = document.getElementById("s2");
+						elem.value = 100;
+						},
+					function ( xhr ) {
+
+					},
+					function ( err ) {console.log( 'An error happened' );}
+				);
+				loaderMusic.load('sounds/radio03.mp3',
+					function ( audioBuffer ) {
+						console.log( 'song3 play' );						
+						sound3.setBuffer( audioBuffer );
+						musicLoad-=1;
+						if(musicLoad==0&&geoLoad==0){timerReady()};
+						var elem = document.getElementById("s3");
+						elem.value = 100;
+						},
+					function ( xhr ) {
+
+					},
+					function ( err ) {console.log( 'An error happened' );}
+				);
+
+				//song1 = document.getElementById( 'song1' );
+				//sound1.setMediaElementSource( song1 );
+				sound1.setRefDistance( 1300 );
+				//sound1.setMaxDistance(500);
+				sound1.setDistanceModel("exponential")
+				sound1.setRolloffFactor(6);
+				sound2.setRefDistance( 1300 );
+				//sound2.setMaxDistance(500);
+				sound2.setDistanceModel("exponential")
+				sound2.setRolloffFactor(6);
+				sound3.setRefDistance( 1300 );
+				//sound3.setMaxDistance(500);
+				sound3.setRolloffFactor(6);
+				sound3.setDistanceModel("exponential")
+				//sound1.setMaxDistance(100);
+				//sound1.startTime = 1000.0;
+				//song1.play();
 				
-	loader.setKTX2Loader( ktx2Loader );
-	loader.setDRACOLoader(dracoLoader);
-	loader.setMeshoptDecoder( MeshoptDecoder );
+				const mesh1 = new THREE.Mesh( sphere, material1 );
+				mesh1.position.set( 0, 0, 0 );				
+				const mesh2 = new THREE.Mesh( sphere, material1 );
+				mesh2.position.set( -3000, 0, 0 );
+				const mesh3 = new THREE.Mesh( sphere, material1 );
+				mesh3.position.set( -3000, 0, -3000 );
+				mesh1.add( sound1 );
+				mesh2.add( sound2 );
+				mesh3.add( sound3 );
+				playerScene.add( mesh2 );
+				playerScene.add( mesh3 );
+				playerScene.add( mesh1 );								
+            }
 
-	const loader_env = new THREE.CubeTextureLoader();
-	loader_env.setPath( 'textures/cube/pisa/' );
-	textureCube = loader_env.load( [ 'px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png' ] );
-	textureCube.encoding = THREE.sRGBEncoding;
+            //
+            //
+            //
+            //
+            //
+            //
+            //
+            //
 
-	var alphaMap = new THREE.TextureLoader().load('textures/c_col.jpg');
-	var land_map = new THREE.TextureLoader().load('textures/sand2.jpg');
-	land_map.wrapS = land_map.wrapT = THREE.RepeatWrapping;
+            function setupGraphics(){
 
-	const sphereMaterial = new THREE.MeshStandardMaterial( { 
-					color: 0,
-					metalness: 0,
-					envMap: textureCube, // optional environment map
-					envMapIntensity: 20,
-					specular: 0xffc382,
-					shininess: 30,
-					roughness: 0.2,
-					fog: false
-	});           
+                //create clock for timing
+                clock = new THREE.Clock();
 
+                //create the scene
+                playerScene = new THREE.Scene();
+                mapScene = new THREE.Scene();
+                activeScene = playerScene;
 
-	//LOAD FONT
-	const loaderFont = new FontLoader();
-	loaderFont.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
-	mainFont = font; 	
-	});
+                playerScene.background = new THREE.Color( 0xbfd1e5 );
+                mapScene.background = new THREE.Color( 0xffddc4 );
+                
+                var amb_map =  new THREE.AmbientLight( 0xf0f0f0 )
+                amb_map.intensity = 1;
+                mapScene.add(amb_map);
 
-	//LOAD 3D OBJECTS
-
-	loader.load( 'hover.glb', function ( gltf ) {
-	gltf.scene.position.y=-1;
-	botType01.add(gltf.scene);
-	botType01.scale.set(12,12,12);
-	progressLoad("bot_hover")
-	})
-
-	loader.load( 'ha_ktx.glb', function ( gltf ) {
-	gltf.scene.scale.set(1,1,1);
-	gltf.scene.position.y=-1;
-	botType01mixer = new THREE.AnimationMixer( gltf.scene );
-	var action = botType01mixer.clipAction( gltf.animations[ 0 ] );
-	action.play();
-	botType01.rotation.y = 3.14;
-	botType01.add(gltf.scene);
-	progressLoad("bot_model")					
-	} );
-
-
+                var amb =  new THREE.AmbientLight( 0xf0f0f0 )
+                amb.intensity = 0.5;
+                playerScene.add(amb);
+                playerScene.fog = new THREE.FogExp2( 0xf7e0c8, 0.003 );
+                
+                playerCamera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 10000 );
+                mapCamera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 20000 );
+                shopCamera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+                activeCamera = playerCamera;
+                shopCamera.position.set( 60, 80, -80);
 
 
+                mapCameraHolder = new THREE.Object3D();
+                
+                mapCamera.position.set( 0, 10000, 0 );
+
+                
+                mapCameraHolder.rotation.x = THREE.MathUtils.degToRad(60);
+                mapCameraHolder.rotation.z = THREE.MathUtils.degToRad(-27);
+
+                mapCameraHolder.add(mapCamera);
+                mapScene.add(mapCameraHolder);
+
+                const target = new THREE.Vector3(0,0,0);
+                mapCameraHolder.updateWorldMatrix(true,false);
+                mapCameraHolder.getWorldPosition(target);
+                mapCamera.up.set(0, 1, 0);
+                mapCamera.lookAt(target);
+
+								playerCamera.position.set( 0, 10, 30 );
+								playerCamera.rotation.set( -0.1, 0, 0 );
+								cameraHolder.add(playerCamera);
+				        ballHolder.add(cameraHolder);
+
+				        mapCamera.zoom = 0.2;
+				        mapCamera.updateProjectionMatrix();
+                
+                	
+
+                //Add directional light
+                dirLight = new THREE.DirectionalLight( 0xffc68a , 1);
+                //dirLight.color.setHSL( 0.1, 1, 0.95 );
+                dirLight.position.set( -1, 1.75, 1 );
+                dirLight.position.multiplyScalar( 100 );
+
+                dirLight.castShadow = true;
+                dirLight.intensity = 1;
+
+                dirLight.shadow.mapSize.width = 2048;
+                dirLight.shadow.mapSize.height = 2048;
+
+                dirLight.shadow.radius =7;
+
+                let d = 30;
+
+                dirLight.shadow.camera.left = -d;
+                dirLight.shadow.camera.right = d;
+                dirLight.shadow.camera.top = d;
+                dirLight.shadow.camera.bottom = -d;
+
+                dirLight.shadow.camera.far = 13500;
+                
+                dirLight.target.position.y = -1;
+                dirLight.target.position.z = -1;
+                dirLight.target.position.x = -1;
+                ballHolder.add(dirLight);
+                ballHolder.add(dirLight.target);
+
+               
+        renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.toneMapping = THREE.ACESFilmicToneMapping;
+				renderer.toneMappingExposure = 1;
+				renderer.outputEncoding = THREE.sRGBEncoding;
+				renderer.shadowMap.enabled = true;
+
+				//renderer.debug.checkShaderErrors = false;
+
+				//renderer.compile(playerScene,playerCamera);
+				//renderer.getContext().getProgramInfoLog= function() { return '' }
+				container = document.body.appendChild( renderer.domElement );
+				
+
+				//
+                //
+                //
+                //
+                //
+                //
+                //	
+                //
+
+				//LOADER
+				const dracoLoader = new DRACOLoader().setDecoderPath('jsm/libs/draco/');
+        const ktx2Loader = new KTX2Loader().setTranscoderPath( 'jsm/libs/basis/' ).detectSupport( renderer );
+        const loaderFbx = new FBXLoader().setPath( 'models/gltf/' );
+				const loader = new GLTFLoader().setPath( 'models/gltf/' );
+							
+				loader.setKTX2Loader( ktx2Loader );
+				loader.setDRACOLoader(dracoLoader);
+				loader.setMeshoptDecoder( MeshoptDecoder );
+
+				const loader_env = new THREE.CubeTextureLoader();
+				loader_env.setPath( 'textures/cube/pisa/' );
+        textureCube = loader_env.load( [ 'px.png', 'nx.png', 'py.png', 'ny.png', 'pz.png', 'nz.png' ] );
+				textureCube.encoding = THREE.sRGBEncoding;
+
+				var alphaMap = new THREE.TextureLoader().load('textures/c_col.jpg');
+				var land_map = new THREE.TextureLoader().load('textures/sand2.jpg');
+				land_map.wrapS = land_map.wrapT = THREE.RepeatWrapping;
 
 
-	loader.load( 'ha_ktx.glb', function ( gltf ) {
-		gltf.scene.traverse( function( node ) {
-					if ( node.isMesh ) { node.castShadow = true; }
-			
-			} );
-		
-		mixer = new THREE.AnimationMixer( gltf.scene );
-		var action = mixer.clipAction( gltf.animations[ 0 ] );
-		action.play();
-		gltf.scene.rotation.y = 3.14;
-		hover.add( gltf.scene );
-		progressLoad("player_model")	 				
-	});		
 
-	hover.scale.set(5,5,5); 
-	ballHolder.add( hover );
-	playerScene.add(ballHolder);
 
-	loader.load( 'hover.glb', function ( gltf ) {
-		gltf.scene.traverse( function( node ) {
-					if ( node.isMesh ) { node.castShadow = true; }
-			} );
-		
-		hover.add( gltf.scene );
-		progressLoad("player_hover")	
-	});
 
-	loader.load( 'sky.glb', function ( gltf ) {
-		gltf.scene.position.y = -300;
-		//gltf.scene.getObjectByName('sky_out').blending(THREE.AdditiveBlending);
-		sky = gltf.scene;
-		playerCamera.add( gltf.scene );
-		progressLoad("sky")
-	});
-	        
-	loader.load( 'optimized/land.glb', function ( gltf ) {
+                const sphereMaterial = new THREE.MeshStandardMaterial( { 
+    						color: 0,
+
+    						metalness: 0,
+    						envMap: textureCube, // optional environment map
+    						envMapIntensity: 20,
+    						specular: 0xffc382,
+    						shininess: 30,
+    						roughness: 0.2,
+    						fog: false
+						} );           
+
+
+        //LOAD FONT
+				const loaderFont = new FontLoader();
+				loaderFont.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
+				mainFont = font; 	
+				});
+
+				//LOAD 3D OBJECTS
+
+  			loader.load( 'hover.glb', function ( gltf ) {
+				gltf.scene.position.y=-1;
+				botType01.add(gltf.scene);
+				botType01.scale.set(12,12,12);
+				progressLoad("bot_hover")
+				})
+
+				loader.load( 'ha_ktx.glb', function ( gltf ) {
+				gltf.scene.scale.set(1,1,1);
+				gltf.scene.position.y=-1;
+				botType01mixer = new THREE.AnimationMixer( gltf.scene );
+				var action = botType01mixer.clipAction( gltf.animations[ 0 ] );
+				action.play();
+				botType01.rotation.y = 3.14;
+				botType01.add(gltf.scene);
+				progressLoad("bot_model")					
+				} );
+
+
+
+
+
+
+				loader.load( 'ha_ktx.glb', function ( gltf ) {
+					gltf.scene.traverse( function( node ) {
+        				if ( node.isMesh ) { node.castShadow = true; }
+        		progressLoad("player_model")	
+    				} );
+					
+					mixer = new THREE.AnimationMixer( gltf.scene );
+					var action = mixer.clipAction( gltf.animations[ 0 ] );
+					action.play();
+					gltf.scene.rotation.y = 3.14;
+					hover.add( gltf.scene );
+					
+				} );		
+
+				hover.scale.set(5,5,5); 
+				ballHolder.add( hover );
+				playerScene.add(ballHolder);
+
+				loader.load( 'hover.glb', function ( gltf ) {
+					gltf.scene.traverse( function( node ) {
+        				if ( node.isMesh ) { node.castShadow = true; }
+    				} );
+					
+					hover.add( gltf.scene );
+					progressLoad("player_hover")
+					
+				} );
+
+
+                loader.load( 'sky.glb', function ( gltf ) {
+					gltf.scene.position.y = -300;
+					//gltf.scene.getObjectByName('sky_out').blending(THREE.AdditiveBlending);
+					sky = gltf.scene;
+					playerCamera.add( gltf.scene );
+					progressLoad("sky")
+				} );
+                
+loader.load( 'optimized/land.glb', function ( gltf ) {
+
 	const parser = gltf.parser;
 	for (let i =tileXmin; i <= tileXmax; i++) {
-	for (let j =tileZmin; j <= tileZmax; j++) {
+		for (let j =tileZmin; j <= tileZmax; j++) {
 
-				const lod = new THREE.LOD();
-				const lod00 = gltf.scene;
-	      const lod01 = new THREE.Object3D();
-	      lod.addLevel( lod00, 1500 );
-	      lod.addLevel( lod01, 2000 );
-	      const obj = lod.clone();
+							const lod = new THREE.LOD();
+							const lod00 = gltf.scene;
+              const lod01 = new THREE.Object3D();
+              lod.addLevel( lod00, 1500 );
+              lod.addLevel( lod01, 2000 );
+              const obj = lod.clone();
 
-	obj.levels[0].object.traverse( async function( mvar ) {
+			obj.levels[0].object.traverse( async function( mvar ) {
 
-	if ( mvar.isMesh ) {
-		const meshVariantDef = mvar.userData.gltfExtensions[ 'KHR_materials_variants' ];
-		if ( ! meshVariantDef ) return;
+				if ( mvar.isMesh ) {
+					const meshVariantDef = mvar.userData.gltfExtensions[ 'KHR_materials_variants' ];
+					if ( ! meshVariantDef ) return;
 
-		var material_var = 0;
-		if(i==0&&j==0){
-			material_var = 1;
-		}
-		if(i==0&&j==1){
-			material_var = 2;
-		}
-		if(i==1&&j==1){
-			material_var = 3;
-		}
+					var material_var = 0;
+					if(i==0&&j==0){
+						material_var = 1;
+					}
+					if(i==0&&j==1){
+						material_var = 2;
+					}
+					if(i==1&&j==1){
+						material_var = 3;
+					}
+						
+
+					const mapping = meshVariantDef.mappings.find( ( mapping ) => mapping.variants.includes(material_var) );
+					mvar.material = await parser.getDependency( 'material', mapping.material );
+								
+					parser.assignFinalMaterial( mvar );
+							
+					mvar.material.lightMap = await mvar.material.map;
+					mvar.material.map = land_map;
+					mvar.material.lightMapIntensity = 70;
+					mvar.material.bumpMap = land_map;
+					mvar.material.bumpScale =12;
+					mvar.material.roughness =1;
+					mvar.material.metalness =0;
+
+			      
+			
 			
 
-		const mapping = meshVariantDef.mappings.find( ( mapping ) => mapping.variants.includes(material_var) );
-		mvar.material = await parser.getDependency( 'material', mapping.material );
+
+					var copy = mvar.clone();
 					
-		parser.assignFinalMaterial( mvar );
-				
-		mvar.material.lightMap = await mvar.material.map;
-		mvar.material.map = land_map;
-		mvar.material.lightMapIntensity = 70;
-		mvar.material.bumpMap = land_map;
-		mvar.material.bumpScale =12;
-		mvar.material.roughness =1;
-		mvar.material.metalness =0;
-		var copy = mvar.clone();
-
-	}
-	});
-	obj.receiveShadow = true;
-	obj.position.x+=tileStep*j;
-	obj.position.z+=tileStep*i;
-	playerScene.add(obj);
-
-	}}
-	progressLoad("land")
-	});
-
-	loader.load( 'theater.glb', function ( gltf ) {
-		const lod = new THREE.LOD();
-	        	var lod00 = gltf.scene.getObjectByName('theater_out');
-	        	var lod01 = new THREE.Object3D();
-	        	lod.addLevel( lod00, 2000 );
-	        	lod.addLevel( lod01, 2500 );
-		for (let i =tileXmin; i <= tileXmax; i++) {
-			for (let j =tileZmin; j <= tileZmax; j++) {
-				const copy = lod.clone();
-				copy.receiveShadow = true;
-				copy.position.x+=tileStep*j;
-				copy.position.z+=tileStep*i;
-				playerScene.add(copy);
-		}}
-		progressLoad("theater")
-	} );
-
-	loader.load( 'wagon_placer.glb', function ( gltf ) {	
-		const placer = gltf.scene;											
-		gltf.scene.traverse( function( node ) {
-			if(node.name.includes("PL_")){
-				const obj_name = node.name.split("PL_")[1];
-				const path = 'optimized/'+obj_name+'.glb';
-				loader.load(path, function ( gltf ) {
-	  			gltf.scene.traverse( function( node ) {
-	  					if ( node.isMesh ) { 
-	  						node.material.envMap = textureCube;
-	  						}
-					} );
-				
-	  		const lod = new THREE.LOD();
-				const lod00 = gltf.scene;
-	      const lod01 = new THREE.Object3D();
-	      lod.addLevel( lod00, 1000 );
-	      lod.addLevel( lod01, 1500 );
-	      const obj = lod.clone();
-				const place = placer.getObjectByName(node.name);
-				place.updateWorldMatrix(true,false);							
-				obj.applyMatrix4(place.matrixWorld);
-				obj.name = obj_name;
-				interactList.push(obj);
-				playerScene.add(obj);
-				});
+					//playerScene.add(copy);
 			}
 		});
-	progressLoad("wagons")
-	});
+		obj.receiveShadow = true;
+		obj.position.x+=tileStep*j;
+		obj.position.z+=tileStep*i;
+		playerScene.add(obj);
 
-	animTexture01 = document.getElementById( 'video' );
-	const a_texture = new THREE.VideoTexture( animTexture01 );
+	}}
+progressLoad("land")
+});
 
-	loader.load( 'sc_placer.glb', function ( placer ) {	
-		const elements = placer.scene.children[0].children[0].children;
-		elements.forEach(function (element) {
-			const path ='optimized/'+element.name+'.glb';
-			loader.load(path, function ( gltf ) {							
 
-				const lod = new THREE.LOD();
-				const lod00 = gltf.scene;
-	      const lod01 = new THREE.Object3D();
-	      lod.addLevel( lod00, 1000 );
-	      lod.addLevel( lod01, 1500 );
-												
-				element.children.forEach(function (element) {
+				loader.load( 'theater.glb', function ( gltf ) {
+					const lod = new THREE.LOD();
+                	var lod00 = gltf.scene.getObjectByName('theater_out');
+                	var lod01 = new THREE.Object3D();
+                	lod.addLevel( lod00, 2000 );
+                	lod.addLevel( lod01, 2500 );
+					for (let i =tileXmin; i <= tileXmax; i++) {
+						for (let j =tileZmin; j <= tileZmax; j++) {
+							const copy = lod.clone();
+							copy.receiveShadow = true;
+							copy.position.x+=tileStep*j;
+							copy.position.z+=tileStep*i;
+							playerScene.add(copy);
+					}}
+					progressLoad("theater")
+				} );
+				
+
+				loader.load( 'wagon_placer.glb', function ( gltf ) {	
+					const placer = gltf.scene;									
 					
-					const obj = lod.clone();
-					element.updateWorldMatrix(true,false);								
-					obj.applyMatrix4(element.matrixWorld);
+					gltf.scene.traverse( function( node ) {
+        		if(node.name.includes("PL_")){
+        			const obj_name = node.name.split("PL_")[1];
+        			const path = 'optimized/'+obj_name+'.glb';
+        			loader.load(path, function ( gltf ) {
+	        			gltf.scene.traverse( function( node ) {
+	        					if ( node.isMesh ) { 
+	        						node.material.envMap = textureCube;
+	        						}
+	    					} );
+							
+	        		const lod = new THREE.LOD();
+							const lod00 = gltf.scene;
+              const lod01 = new THREE.Object3D();
+              lod.addLevel( lod00, 1000 );
+              lod.addLevel( lod01, 1500 );
 
-					//MATERIAL VARIANTS
-					const parser = gltf.parser;
-					obj.levels[0].object.traverse(async function( mvar ) {
-						if ( mvar.isMesh ) {
-						//material variants
-						try {
-						const meshVariantDef = mvar.userData.gltfExtensions[ 'KHR_materials_variants' ];
-						if ( ! meshVariantDef ) return;
+              const obj = lod.clone();
 
-						const mapping = meshVariantDef.mappings.find( ( mapping ) => mapping.variants.includes( Number(element.name.split("PL_")[2]) ) );
-						mvar.material = await parser.getDependency( 'material', mapping.material );
-	 					
-	 					parser.assignFinalMaterial( mvar );
-	 					mvar.material.envMap = textureCube;
-	 					
-	 					} 
-	 					catch (error) {
-						//console.log(error)
-						}
-						if(element.name.includes("textpillar_opt")){							
-	    			mvar.material.emissiveMap = a_texture;
-	    			//mvar.material.emissive = 0xbfd1e5;
-	  				}
-					}
+							const place = placer.getObjectByName(node.name);
+							place.updateWorldMatrix(true,false);							
+							obj.applyMatrix4(place.matrixWorld);
+							playerScene.add(obj);
+							});
+        		}
+        	}	);
+				progressLoad("wagons")
+				} );
+				
+				animTexture01 = document.getElementById( 'video' );
+				const a_texture = new THREE.VideoTexture( animTexture01 );
+				
+				loader.load( 'sc_placer.glb', function ( placer ) {	
+					const elements = placer.scene.children[0].children[0].children;
+					elements.forEach(function (element) {
+						const path ='optimized/'+element.name+'.glb';
+						loader.load(path, function ( gltf ) {							
+
+							const lod = new THREE.LOD();
+							const lod00 = gltf.scene;
+              const lod01 = new THREE.Object3D();
+              lod.addLevel( lod00, 1000 );
+              lod.addLevel( lod01, 1500 );
+															
+
+							element.children.forEach(function (element) {
+								
+								const obj = lod.clone();
+								element.updateWorldMatrix(true,false);								
+								obj.applyMatrix4(element.matrixWorld);
+
+								//MATERIAL VARIANTS
+								const parser = gltf.parser;
+								obj.levels[0].object.traverse(async function( mvar ) {
+									if ( mvar.isMesh ) {
+									//material variants
+									try {
+									const meshVariantDef = mvar.userData.gltfExtensions[ 'KHR_materials_variants' ];
+									if ( ! meshVariantDef ) return;
+
+									const mapping = meshVariantDef.mappings.find( ( mapping ) => mapping.variants.includes( Number(element.name.split("PL_")[2]) ) );
+									mvar.material = await parser.getDependency( 'material', mapping.material );
+			   					
+			   					parser.assignFinalMaterial( mvar );
+			   					mvar.material.envMap = textureCube;
+			   					
+			   					} 
+			   					catch (error) {
+									//console.log(error)
+									}
+									if(element.name.includes("textpillar_opt")){							
+		        			mvar.material.emissiveMap = a_texture;
+		        			//mvar.material.emissive = 0xbfd1e5;
+	        				}
+								}
+								});
+								//ANIMATION
+								if(element.name.includes("wind")){						
+		        			const mixer_fan = new THREE.AnimationMixer( obj );
+									const action = mixer_fan.clipAction( gltf.animations[ 0 ] )
+									action.play();
+									mixers.push(mixer_fan); 
+								}
+								if(element.name.includes("aircone")){							
+		        			const mixer_fan = new THREE.AnimationMixer( obj );
+									const action = mixer_fan.clipAction( gltf.animations[ 0 ] )
+									action.play();
+									mixers.push(mixer_fan);
+								}
+								if(element.name.includes("vetro")){							
+		        			const mixer_fan = new THREE.AnimationMixer( obj );
+									const action = mixer_fan.clipAction( gltf.animations[ 0 ] )
+									action.play();
+									mixers.push(mixer_fan);
+								}
+								
+								playerScene.add(obj);
+							});
+						});
 					});
-					//ANIMATION
-					if(element.name.includes("wind")){						
-	    			const mixer_fan = new THREE.AnimationMixer( obj );
-						const action = mixer_fan.clipAction( gltf.animations[ 0 ] )
-						action.play();
-						mixers.push(mixer_fan); 
-					}
-					if(element.name.includes("aircone")){							
-	    			const mixer_fan = new THREE.AnimationMixer( obj );
-						const action = mixer_fan.clipAction( gltf.animations[ 0 ] )
-						action.play();
-						mixers.push(mixer_fan);
-					}
-					if(element.name.includes("vetro")){							
-	    			const mixer_fan = new THREE.AnimationMixer( obj );
-						const action = mixer_fan.clipAction( gltf.animations[ 0 ] )
-						action.play();
-						mixers.push(mixer_fan);
-					}				
-					playerScene.add(obj);
+				progressLoad("objects")
 				});
-			});
-		});
-	progressLoad("objects")
-	});
-
-	loader.load( 'out_map.glb', function ( gltf ) {
-		mapScene.add(gltf.scene);
-		progressLoad("bounds")
-	});
-
-	loader.load( 'station01.glb', function ( gltf ) {		
-		gltf.scene.getObjectByName('station01_out').material = sphereMaterial;
-		gltf.scene.getObjectByName('station01_tube_out').material.alphaMap = alphaMap;
-		gltf.scene.getObjectByName('station01_tube_out').material.transparent = true;
-		sc01 = gltf.scene;		
-		playerScene.add(sc01);
-		mapScene.add(sc01);
-		intersect_map.push(sc01); 
-		progressLoad("station01")		
-	});
-		
-	loader.load( 'station02.glb', function ( gltf ) {
-		gltf.scene.getObjectByName('station02_out').material = sphereMaterial;		
-		gltf.scene.getObjectByName('station02_tube_out').material.alphaMap = alphaMap;
-		gltf.scene.getObjectByName('station02_tube_out').material.transparent = true;
-		sc02 = gltf.scene;
-		playerScene.add(sc02);
-		mapScene.add(sc02);
-		intersect_map.push(sc02);
-		progressLoad("station02")
-	});
-	loader.load( 'station03.glb', function ( gltf ) {
-		gltf.scene.getObjectByName('station03_tube_out').material.alphaMap = alphaMap;
-		gltf.scene.getObjectByName('station03_tube_out').material.transparent = true;
-		gltf.scene.getObjectByName('station03_out').material = sphereMaterial;		
-		sc03 = gltf.scene;
-		playerScene.add(sc03);
-		mapScene.add(sc03);
-		intersect_map.push(sc03);
-		progressLoad("station03")
-	});
-	loader.load( 'station04.glb', function ( gltf ) {
-		gltf.scene.getObjectByName('station04_out').material = sphereMaterial;
-		playerScene.add( gltf.scene );
-		progressLoad("station04")
-	} );
-}
+				
 
 
+				loader.load( 'out_map.glb', function ( gltf ) {
 
+					mapScene.add(gltf.scene);
+				progressLoad("bounds")
+				});
 
+				loader.load( 'station01.glb', function ( gltf ) {
+					
+					gltf.scene.getObjectByName('station01_out').material = sphereMaterial;
+					
 
+					gltf.scene.getObjectByName('station01_tube_out').material.alphaMap = alphaMap;
+					gltf.scene.getObjectByName('station01_tube_out').material.transparent = true;
+					sc01 = gltf.scene;
+					
+					mapScene.add(sc01);
+					intersect_map.push(sc01); 
+					playerScene.add(sc01.clone());
+					progressLoad("station01")
+					
+				} );
+					
+				loader.load( 'station02.glb', function ( gltf ) {
+					gltf.scene.getObjectByName('station02_out').material = sphereMaterial;
+					
 
+					gltf.scene.getObjectByName('station02_tube_out').material.alphaMap = alphaMap;
+					gltf.scene.getObjectByName('station02_tube_out').material.transparent = true;
+					sc02 = gltf.scene;
+					playerScene.add( sc02.clone() );
+					intersect_map.push(sc02);
+					mapScene.add(sc02);
+					progressLoad("station02")
+				} );
+				loader.load( 'station03.glb', function ( gltf ) {
 
+					gltf.scene.getObjectByName('station03_tube_out').material.alphaMap = alphaMap;
+					gltf.scene.getObjectByName('station03_tube_out').material.transparent = true;
 
+					gltf.scene.getObjectByName('station03_out').material = sphereMaterial;
+					
+					sc03 = gltf.scene;
 
+					playerScene.add( sc03.clone() );
+					intersect_map.push(sc03);
+					mapScene.add(sc03);
+					progressLoad("station03")
+				
+					} );
+				loader.load( 'station04.glb', function ( gltf ) {
 
+					//gltf.scene.getObjectByName('station03_tube_out').material.alphaMap = alphaMap;
+					//gltf.scene.getObjectByName('station03_tube_out').material.transparent = true;
 
+					gltf.scene.getObjectByName('station04_out').material = sphereMaterial;
 
-
-
-
-
-
+					playerScene.add( gltf.scene );
+					progressLoad("station04")
+				} );
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class mapPath{	
-	constructor(){
-		document.addEventListener( 'mousedown', this.onDocumentMouseDown.bind(this) );
-
-		this.characterCurve = new THREE.CatmullRomCurve3()
-		this.numInstances = 50;
-		this.geoBox = this.createArrow();
-		this.geoBox.rotateX( Math.PI/2 );
-		this.geoBox.scale(20,20,20);
-		this.materialBox = new THREE.MeshPhongMaterial( { color: 0x000000, wireframe: false } );
-		this.flow = new InstancedFlow(this.numInstances,1, this.geoBox,this.materialBox );
-		mapScene.add( this.flow.object3D );
-		this.flow.object3D.position.y=300;
-	}
-
-	update(deltaTime){
-		for(let i = 0;i<this.numInstances;i++){
-			this.flow.moveIndividualAlongCurve(i,deltaTime*0.1);
-		}
-	}
-	
-	createArrow(){
-		let	geometry = new TextGeometry( '>', {
-			font: mainFont,
-			size: 10,
-			height: 1,
-		} );
-		return geometry;		
-	}
-
-	createCharacterPath(pos){
-    characterCurve = new THREE.CatmullRomCurve3(pos);
-    characterCurve.curveType = "catmullrom";
-    characterCurve.tension = 0;
-		pt = characterCurve.getPoints( 30 );
-		const geometry = new THREE.BufferGeometry().setFromPoints( pt );
-
-		const material = new THREE.LineBasicMaterial( { color: 0xff0000 } );
-
-		// Create the final object to add to the scene
-		const curveObject = new THREE.Line( geometry, material );
-		mapScene.remove(characterPath);
-		characterPath = curveObject;
-		mapScene.add(characterPath);
-		this.flow.updateCurve( 0, characterCurve );
-		for(let i = 0;i<this.numInstances;i++){
-			this.flow.setCurve(i,0);
-			
-			//var st = i*1.0/20;
-			var st = (300.0*i)/characterCurve.getLength();
-
-			this.flow.moveIndividualAlongCurve(i,0);
-			st =THREE.MathUtils.clamp(st,0,1);
-		  st =THREE.MathUtils.mapLinear(st,0,1,0.2,0.8);
-			this.flow.offsets[i]=st;
-		}
-	}
-
-			
-	onDocumentMouseDown( event ) {    
-    if(activeCamera == mapCamera){
-    	event.preventDefault();
-      var mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   
-                              -( event.clientY / window.innerHeight ) * 2 + 1,  
-                              0.5 );
-      var playerWP = new THREE.Vector3();                             
-      var targetWP = new THREE.Vector3();
-      var raycaster = new THREE.Raycaster();                                        
-     	raycaster.setFromCamera( mouse3D, mapCamera );
-      var intersects = raycaster.intersectObjects( intersect_map );
-      if ( intersects.length > 0 ) {
-
-      	var obj = intersects[ 0 ].object;
-      	
-      	if(prevStation != obj){
-      		if(prevPrevStation != obj){
-        	obj.getWorldPosition(targetWP);
-					ballHolder.getWorldPosition(playerWP);
-					targetWP.y=0;
-					playerWP.y=0;
-          visitList.push(targetWP);
-          var pos = []
-          pos.push(playerWP);
-          pos = pos.concat(visitList);
-        
-        prevPrevStation = prevStation;
-        prevStation = obj;
-        console.log(prevStation);
-        autoMode = 1;
-	  document.getElementById("autoButton").style.display = "block";
-		this.createCharacterPath(pos);
-		}}
-	if(activeCamera == playerCamera){
-    	event.preventDefault();
-      var mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   
-                              -( event.clientY / window.innerHeight ) * 2 + 1,  
-                              0.5 );
-      var playerWP = new THREE.Vector3();                             
-      var targetWP = new THREE.Vector3();
-      var raycaster = new THREE.Raycaster();                                        
-     	raycaster.setFromCamera( mouse3D, mapCamera );
-      var intersects = raycaster.intersectObjects( playerScene.children );
-      if ( intersects.length > 0 ) {
-      	console.log(intersectsP[0])
-		}}
-		}
-	  }
-	}
-}
-
+            }
 class ridingBot{
 	constructor(pos){
 		this.id = 0;
@@ -1616,22 +1681,12 @@ if(pt.length>1){
                 //mixer2.update( deltaTime*0.65 );
 
                 updatePhysics( deltaTime );
+    						
     						renderer.render( activeScene, activeCamera );
-                requestAnimationFrame( renderFrame );
-                interact();
-            }
 
-            function interact(){
-            	var playerWP = new THREE.Vector3();
-            	var clDist = 100000;
-            	var clElem;                              
-							ballHolder.getWorldPosition(playerWP);
-							interactList.forEach(function (element) {
-								const dist = element.position.distanceTo(playerWP);
-								if(dist<clDist){clDist=dist;clElem=element};	
-							});
-							if(clDist<120)console.log(clElem.name);
-            };
+                requestAnimationFrame( renderFrame );
+
+            }
 
             function autoChange(){
  							document.getElementById("autoButton").style.display = "none";
