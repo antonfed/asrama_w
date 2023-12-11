@@ -492,7 +492,7 @@ function make_collisionShape() {
     	
 	var collisionShape;
 	const loader = new GLTFLoader().setPath( 'models/gltf/' );
-	loader.load( 'wagon_collision.glb', function ( gltf ) {
+	loader.load( 'coll_placer.glb', function ( gltf ) {
 		gltf.scene.traverse( function( node ) {
 			if ( node.isMesh ) {
 				node.updateMatrix();
@@ -1046,8 +1046,8 @@ function setupGraphics(){
 				const lod = new THREE.LOD();
 				const lod00 = gltf.scene;
 	      const lod01 = new THREE.Object3D();
-	      lod.addLevel( lod00, 1500 );
-	      lod.addLevel( lod01, 2000 );
+	      lod.addLevel( lod00, 1800 );
+	      lod.addLevel( lod01, 2500 );
 	      const obj = lod.clone();
 
 	obj.levels[0].object.traverse( async function( mvar ) {
