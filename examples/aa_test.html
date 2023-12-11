@@ -41,6 +41,113 @@
 				text-transform: uppercase;
 				cursor: pointer;
 			}
+			.shopBt{
+				width: 70px;
+				height: 70px;
+				background: transparent;
+				background-image: url("./source/shop_w.png");
+				background-size: cover;
+  			background-position: center;
+  			background-repeat: no-repeat;
+				border: 0;
+				border-radius: 50px;
+			}
+			.mapBt{
+				width: 70px;
+				height: 70px;
+				background: transparent;
+				background-image: url("./source/map_w.png");
+				background-size: 50%;
+  			background-position: center;
+  			background-repeat: no-repeat;
+				border: 0;
+				border-radius: 50px;
+			}
+			.accBt{
+				width: 70px;
+				height: 70px;
+				background: transparent;
+				background-image: url("./source/acc_w.png");
+				background-size: 75%;
+  			background-position: center;
+  			background-repeat: no-repeat;
+				border: 0;
+				border-radius: 50px;
+			}
+			.exitBt{
+				width: 70px;
+				height: 70px;
+				background: transparent;
+				background-image: url("./source/exit_w.png");
+				background-size: 55%;
+  			background-position: center;
+  			background-repeat: no-repeat;
+				border: 0;
+				border-radius: 50px;
+			}
+
+
+			.exitHolder {
+			position: absolute;
+  		top: 70%;
+  		left: 50%;
+  		transform: translate(-50%, -0%);
+      background: transparent;
+      margin: 0;
+      pointer-events:none;
+    	}
+			.shopHolder {
+			position: absolute;
+  		top: 70%;
+  		left: 50%;
+  		transform: translate(-50%, -0%);
+      background: transparent;
+      margin: 0;
+      pointer-events:none;
+    	}
+    	.mapHolder {
+			position: absolute;
+  		top: 85%;
+  		left: 17%;
+  		transform: translate(-50%, -0%);
+      background: whitem url("../images/cam.png") center center no-repeat;;
+      margin: 0;
+      pointer-events:none;
+    	}
+    	.accHolder {
+			position: absolute;
+  		top: 85%;
+  		left: 83%;
+  		transform: translate(-50%, -0%);
+      background: transparent;
+      margin: 0;
+      pointer-events:none;
+    	}
+    	.shop{
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      box-sizing: border-box;
+      background-image: url("./source/shop_temp.png");
+			background-size: 100%;
+  		background-position: center;
+  		background-repeat: repeat;
+      width: 90%;
+      height: 60%;
+    	}
+    	.acc{
+      position: absolute;
+      background: radial-gradient(ellipse 200px 250px at 50% 65%,rgba(215, 225, 255, 0.00) 0%, rgba(215, 225, 255, 0.99) 100%);
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-sizing: border-box;
+      width: 90%;
+      height: 75%;
+    	}
+
 
 
         </style>
@@ -56,21 +163,27 @@
     	<div id="overlay">
 			<button id="startButton" style="display: none;" class="ui">Play</button>
 		</div>
-		<div id="menu" style="position:absolute; width: 100%; justify-content: center; display: flex;pointer-events:none;">
-		<button id="autoButton" class="buttone" style="display: none;" >Auto</button>
+		<div id="accHolder" class="accHolder">	
+		<button id="accButton" class="accBt" style="display: none; " ></button>
 		</div>
-		<div id="menu" style="position:absolute;  width: 100%;display: flex;justify-content: right;pointer-events:none;">	
-		<button id="mapButton" class="buttone" style="display: none; " >Map</button>
+		<div id="mapHolder" class="mapHolder">	
+		<button id="mapButton" class="mapBt" style="display: none; " ></button>
 		</div>
-		<div id="menu" style="position:absolute;pointer-events:none;">
-		<button id="shopButton" class="buttone" style="display: none; ">Shop</button>
+		<div id="shopHolder" class="shopHolder">
+		<button id="shopButton" class="shopBt" style="display: none; "></button>
 		</div>
+		<div id="exitHolder" class="exitHolder">
+		<button id="exitButton" class="exitBt" style="display: none; "></button>
+		</div>
+		<div id="shopDiv" class="shop" style="display: none;"></div>
+		<div id="accDiv" class="acc" style="display: none;"></div>
 
 
 
 		
     	
     	<script src="jsm/libs/ammo.wasm.js"></script>
+    	
 
     	<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
     	<script type="importmap">
@@ -81,8 +194,10 @@
 				}
 			}
 		</script>
-		        <script type="module" class="ui">
+
+		      <script type="module" class="ui">
         	import * as THREE from 'three';
+
         	import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
         	import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
         	import { FontLoader } from 'three/addons/loaders/FontLoader.js';
@@ -95,6 +210,9 @@
         	import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
         	import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         	import { Gyroscope } from 'three/addons/misc/Gyroscope.js';
+        	import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+        	import { Line2 } from 'three/addons/lines/Line2.js';
+					import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
         	import TouchControls from './js/TouchControls.js'
             //variable declaration section
             //variable declaration section
@@ -199,9 +317,22 @@ let prevPrevStation;
 let map;
 let mainFont;
 
+let mapPlayer;
+
 let interactList = [];
 
-let loaderList = ["bot_hover","bot_model","player_hover","player_model","sky","land","theater","wagons","objects","bounds","station01","station02","station03","station04","music01","music02","music03"];
+const intfExitButton = document.getElementById("exitButton")
+const intfShopButton = document.getElementById("shopButton")
+const intfMapButton = document.getElementById("mapButton")
+const intfAccButton = document.getElementById("accButton")
+const intfShopHolder = document.getElementById("shopHolder")
+const intfMapHolder = document.getElementById("mapHolder")
+const intfAccHolder = document.getElementById("accHolder")
+const intfShopDiv = document.getElementById("shopDiv")
+
+
+
+let loaderList = ["bot_hover","bot_model","player_hover","player_model","sky","land","theater","wagons","objects","bounds","station01","station02","station03","station04","station05","music01","music02","music03"];
 
 // vertex shader
 THREE.ShaderChunk.fog_pars_vertex += `
@@ -268,8 +399,10 @@ const mapButton = document.getElementById( 'mapButton' );
 mapButton.addEventListener( 'click', mapChange );
 const shopButton = document.getElementById( 'shopButton' );
 shopButton.addEventListener( 'click', shopChange );
-const autoButton = document.getElementById( 'autoButton' );
-autoButton.addEventListener( 'click', autoChange );
+const exitButton = document.getElementById( 'exitButton' );
+exitButton.addEventListener( 'click', exitChange );
+const accButton = document.getElementById( 'accButton' );
+accButton.addEventListener( 'click', accChange );
 }
 
 function levelStart() {
@@ -291,6 +424,7 @@ function levelStart() {
 	addControls();
 	document.getElementById("mapButton").style.display = "block";
 	document.getElementById("shopButton").style.display = "block";
+	document.getElementById("accButton").style.display = "block";
 
 	sound1.play();
 	sound2.play();
@@ -705,7 +839,9 @@ function setupGraphics(){
 	playerScene.fog = new THREE.FogExp2( 0xf7e0c8, 0.003 );
 
 	playerCamera = new THREE.PerspectiveCamera( 80, window.innerWidth / window.innerHeight, 1, 10000 );
-	mapCamera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 20000 );
+
+	//mapCamera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 20000 );
+	mapCamera = new THREE.PerspectiveCamera( 8, window.innerWidth / window.innerHeight, 10000, 80000 );
 	shopCamera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
 	activeCamera = playerCamera;
 	shopCamera.position.set( 60, 80, -80);
@@ -713,28 +849,31 @@ function setupGraphics(){
 
 	mapCameraHolder = new THREE.Object3D();
 
-	mapCamera.position.set( 0, 10000, 0 );
+	
 
 
-	mapCameraHolder.rotation.x = THREE.MathUtils.degToRad(60);
-	mapCameraHolder.rotation.z = THREE.MathUtils.degToRad(-27);
+	//mapCameraHolder.rotation.x = THREE.MathUtils.degToRad(60);
+	//mapCameraHolder.rotation.z = THREE.MathUtils.degToRad(-27);
 
-	mapCameraHolder.add(mapCamera);
-	mapScene.add(mapCameraHolder);
+	//mapCameraHolder.add(mapCamera);
+	mapScene.add(mapCamera);
+
+
+
 
 	const target = new THREE.Vector3(0,0,0);
-	mapCameraHolder.updateWorldMatrix(true,false);
-	mapCameraHolder.getWorldPosition(target);
-	mapCamera.up.set(0, 1, 0);
-	mapCamera.lookAt(target);
+	//mapCameraHolder.updateWorldMatrix(true,false);
+	//mapCameraHolder.getWorldPosition(target);
+	//mapCamera.up.set(0, 1, 0);
+	//mapCamera.lookAt(target);
 
 	playerCamera.position.set( 0, 10, 30 );
 	playerCamera.rotation.set( -0.1, 0, 0 );
 	cameraHolder.add(playerCamera);
 	ballHolder.add(cameraHolder);
 
-	mapCamera.zoom = 0.2;
-	mapCamera.updateProjectionMatrix();
+	//mapCamera.zoom = 0.2;
+	//mapCamera.updateProjectionMatrix();
 
 		
 
@@ -782,6 +921,25 @@ function setupGraphics(){
 	//renderer.getContext().getProgramInfoLog= function() { return '' }
 	container = document.body.appendChild( renderer.domElement );
 
+	controls = new OrbitControls( mapCamera, renderer.domElement );
+
+	controls.mouseButtons = {
+	LEFT: 2,
+	MIDDLE: 1,
+	RIGHT: 0
+	}
+	controls.touches = {
+	ONE: 1,
+	TWO: 0
+	}
+	console.log(controls)
+	//controls.addEventListener( 'change', ()=>{renderer.render(mapScene, mapCamera)} );
+	//mapCamera.rotation.x = THREE.MathUtils.degToRad(60);
+  //mapCamera.rotation.z = THREE.MathUtils.degToRad(-27);
+	mapCamera.position.set( 20000, 40000, 40000 );
+	controls.screenSpacePanning = false;
+	controls.enableZoom = false;
+	controls.update();
 
 	//LOADER
 	const dracoLoader = new DRACOLoader().setDecoderPath('jsm/libs/draco/');
@@ -1060,14 +1218,24 @@ function setupGraphics(){
 		progressLoad("bounds")
 	});
 
+	const material1 = new THREE.MeshPhongMaterial( { color: 0xffaa00, flatShading: true, shininess: 0 } );
+	const sphere = new THREE.SphereGeometry( 150, 150, 150 );
+
+	const touchSphere = new THREE.Mesh( sphere, material1 );
+	mapPlayer = touchSphere.clone();
+	mapScene.add(mapPlayer);
+
 	loader.load( 'station01.glb', function ( gltf ) {		
 		gltf.scene.getObjectByName('station01_out').material = sphereMaterial;
 		gltf.scene.getObjectByName('station01_tube_out').material.alphaMap = alphaMap;
 		gltf.scene.getObjectByName('station01_tube_out').material.transparent = true;
-		sc01 = gltf.scene;		
-		playerScene.add(sc01);
-		mapScene.add(sc01);
-		intersect_map.push(sc01); 
+		const ts = touchSphere.clone()
+		ts.visible = false;
+		gltf.scene.getObjectByName('station01_out').add(ts)
+		const sc = gltf.scene;		
+		playerScene.add(sc.clone());
+		mapScene.add(sc);
+		intersect_map.push(ts); 
 		progressLoad("station01")		
 	});
 		
@@ -1075,27 +1243,54 @@ function setupGraphics(){
 		gltf.scene.getObjectByName('station02_out').material = sphereMaterial;		
 		gltf.scene.getObjectByName('station02_tube_out').material.alphaMap = alphaMap;
 		gltf.scene.getObjectByName('station02_tube_out').material.transparent = true;
-		sc02 = gltf.scene;
-		playerScene.add(sc02);
-		mapScene.add(sc02);
-		intersect_map.push(sc02);
+		const ts = touchSphere.clone()
+		ts.visible = false;
+		gltf.scene.getObjectByName('station02_out').add(ts)
+		const sc = gltf.scene;
+		playerScene.add(sc.clone());
+		mapScene.add(sc);
+		intersect_map.push(ts);
 		progressLoad("station02")
 	});
 	loader.load( 'station03.glb', function ( gltf ) {
 		gltf.scene.getObjectByName('station03_tube_out').material.alphaMap = alphaMap;
 		gltf.scene.getObjectByName('station03_tube_out').material.transparent = true;
 		gltf.scene.getObjectByName('station03_out').material = sphereMaterial;		
-		sc03 = gltf.scene;
-		playerScene.add(sc03);
-		mapScene.add(sc03);
-		intersect_map.push(sc03);
+		const ts = touchSphere.clone()
+		ts.visible = false;
+		gltf.scene.getObjectByName('station03_out').add(ts)
+		const sc = gltf.scene;
+		playerScene.add(sc.clone());
+		mapScene.add(sc);
+		intersect_map.push(ts);
 		progressLoad("station03")
 	});
-	loader.load( 'station04.glb', function ( gltf ) {
-		gltf.scene.getObjectByName('station04_out').material = sphereMaterial;
-		playerScene.add( gltf.scene );
+loader.load( 'station04.glb', function ( gltf ) {
+		gltf.scene.getObjectByName('station04_tube_out').material.alphaMap = alphaMap;
+		gltf.scene.getObjectByName('station04_tube_out').material.transparent = true;
+		gltf.scene.getObjectByName('station04_out').material = sphereMaterial;		
+		const ts = touchSphere.clone()
+		ts.visible = false;
+		gltf.scene.getObjectByName('station04_out').add(ts)
+		const sc = gltf.scene;
+		playerScene.add(sc.clone());
+		mapScene.add(sc);
+		intersect_map.push(ts);
 		progressLoad("station04")
-	} );
+	});
+loader.load( 'station05.glb', function ( gltf ) {
+		gltf.scene.getObjectByName('station05_tube_out').material.alphaMap = alphaMap;
+		gltf.scene.getObjectByName('station05_tube_out').material.transparent = true;
+		gltf.scene.getObjectByName('station05_out').material = sphereMaterial;		
+		const ts = touchSphere.clone()
+		ts.visible = false;
+		gltf.scene.getObjectByName('station05_out').add(ts)
+		const sc = gltf.scene;
+		playerScene.add(sc.clone());
+		mapScene.add(sc);
+		intersect_map.push(ts);
+		progressLoad("station05")
+	});
 }
 
 
@@ -1144,21 +1339,23 @@ function setupGraphics(){
 class mapPath{	
 	constructor(){
 		document.addEventListener( 'mousedown', this.onDocumentMouseDown.bind(this) );
-
 		this.characterCurve = new THREE.CatmullRomCurve3()
-		this.numInstances = 50;
+		this.numInstances = 200;
 		this.geoBox = this.createArrow();
 		this.geoBox.rotateX( Math.PI/2 );
 		this.geoBox.scale(20,20,20);
-		this.materialBox = new THREE.MeshPhongMaterial( { color: 0x000000, wireframe: false } );
+		this.materialBox = new THREE.MeshPhongMaterial( { color: 0xFFFFFF, wireframe: false,opacity: 0.5 } );
 		this.flow = new InstancedFlow(this.numInstances,1, this.geoBox,this.materialBox );
 		mapScene.add( this.flow.object3D );
 		this.flow.object3D.position.y=300;
+		this.tension = 0.5;
+		this.characterCurve;
+		this.length = 0;
 	}
 
 	update(deltaTime){
 		for(let i = 0;i<this.numInstances;i++){
-			this.flow.moveIndividualAlongCurve(i,deltaTime*0.1);
+			this.flow.moveIndividualAlongCurve(i,deltaTime*300.0*(1.0/this.length));
 		}
 	}
 	
@@ -1168,35 +1365,39 @@ class mapPath{
 			size: 10,
 			height: 1,
 		} );
+		geometry.translate(0,-4,0);
 		return geometry;		
 	}
 
 	createCharacterPath(pos){
-    characterCurve = new THREE.CatmullRomCurve3(pos);
-    characterCurve.curveType = "catmullrom";
-    characterCurve.tension = 0;
-		pt = characterCurve.getPoints( 30 );
-		const geometry = new THREE.BufferGeometry().setFromPoints( pt );
-
-		const material = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+    this.characterCurve = new THREE.CatmullRomCurve3(pos);
+    this.characterCurve.closed = true;
+    this.characterCurve.curveType = "catmullrom";
+    this.characterCurve.tension = this.tension;
+		pt = this.characterCurve.getPoints( 30 );
+		const geometry = new THREE.TubeGeometry( this.characterCurve, 150, 10, 8, false );
+		const material = new THREE.MeshBasicMaterial( { color: 0xFFFFFF } );
 
 		// Create the final object to add to the scene
-		const curveObject = new THREE.Line( geometry, material );
+		const curveObject = new THREE.Mesh( geometry, material );
 		mapScene.remove(characterPath);
 		characterPath = curveObject;
 		mapScene.add(characterPath);
-		this.flow.updateCurve( 0, characterCurve );
+
+		this.length = this.characterCurve.getLength()
+		this.flow.updateCurve( 0, this.characterCurve );
 		for(let i = 0;i<this.numInstances;i++){
 			this.flow.setCurve(i,0);
 			
 			//var st = i*1.0/20;
-			var st = (300.0*i)/characterCurve.getLength();
+			var st = (600.0*i)/this.length;
 
 			this.flow.moveIndividualAlongCurve(i,0);
 			st =THREE.MathUtils.clamp(st,0,1);
-		  st =THREE.MathUtils.mapLinear(st,0,1,0.2,0.8);
+		  st =THREE.MathUtils.mapLinear(st,0,1,0,1);
 			this.flow.offsets[i]=st;
 		}
+
 	}
 
 			
@@ -1212,42 +1413,18 @@ class mapPath{
      	raycaster.setFromCamera( mouse3D, mapCamera );
       var intersects = raycaster.intersectObjects( intersect_map );
       if ( intersects.length > 0 ) {
-
+      	if(this.firstSt==null){
+      		this.firstSt = intersects[ 0 ].object
+      	}
       	var obj = intersects[ 0 ].object;
-      	
-      	if(prevStation != obj){
-      		if(prevPrevStation != obj){
-        	obj.getWorldPosition(targetWP);
-					ballHolder.getWorldPosition(playerWP);
-					targetWP.y=0;
-					playerWP.y=0;
-          visitList.push(targetWP);
-          var pos = []
-          pos.push(playerWP);
-          pos = pos.concat(visitList);
-        
-        prevPrevStation = prevStation;
-        prevStation = obj;
-        console.log(prevStation);
-        autoMode = 1;
-	  document.getElementById("autoButton").style.display = "block";
-		this.createCharacterPath(pos);
-		}}
-	if(activeCamera == playerCamera){
-    	event.preventDefault();
-      var mouse3D = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1,   
-                              -( event.clientY / window.innerHeight ) * 2 + 1,  
-                              0.5 );
-      var playerWP = new THREE.Vector3();                             
-      var targetWP = new THREE.Vector3();
-      var raycaster = new THREE.Raycaster();                                        
-     	raycaster.setFromCamera( mouse3D, mapCamera );
-      var intersects = raycaster.intersectObjects( playerScene.children );
-      if ( intersects.length > 0 ) {
-      	console.log(intersectsP[0])
+      	if(!visitList.includes(obj)){
+      		visitList.push(obj);
+          const pos = Array.from(visitList, (x) => x.getWorldPosition(new THREE.Vector3()).multiply(new THREE.Vector3(1,0,1)));
+        	autoMode = 1;
+	  			document.getElementById("exitButton").style.display = "block";
+					this.createCharacterPath(pos);
 		}}
 		}
-	  }
 	}
 }
 
@@ -1463,77 +1640,67 @@ class ridingBot{
             }
 
 
-            function moveBall(){
+let autoDir = new THREE.Vector3();
+let resultantImpulse;
 
+function moveBall(){
 
-var characterPos = new THREE.Vector3();
-var characterDir = new THREE.Vector3()
-ballHolder.getWorldPosition( characterPos );
-ballHolder.getWorldDirection( characterDir );
+		const characterPos = new THREE.Vector3();
+		const characterDir = new THREE.Vector3()
+		ballHolder.getWorldPosition(characterPos);
+		ballHolder.getWorldDirection(characterDir);
 
-var posCurve = new THREE.Vector3(0,0,0);
-if(pt.length>1){
-	if (pt[0].distanceTo(characterPos)<500){pt.shift();}
-	posCurve =pt[0];
-	}
-	else 
-	{
-	autoMode = 0;
-	}
+		if(pt.length>=1){
+			if (pt[0].distanceTo(characterPos)<500){pt.shift()}
+			}
+			else 
+			{
+			autoMode = 0;
+			document.getElementById("exitButton").style.display = "none";
+			}
 
+    if(!autoMode){
+      smoothI.push(moveX); 
+      ballHolder.rotation.y-=(smoothI.reduce((a,b) => (a+b)) / smoothI.length)*0.022;
+      smoothI.shift();
+      resultantImpulse = new Ammo.btVector3( characterDir.x*moveZ, 0, characterDir.z*moveZ )
+  	}
+  	else{
+  		var posCurve = pt[0];
+			autoDir = posCurve.clone().sub(characterPos)
+			autoDir.y = 0;
+			autoDir.normalize();	
+      smoothI.push(characterDir.clone().cross(new THREE.Vector3(0,-1,0)).dot(autoDir)); 
+      ballHolder.rotation.y-=(smoothI.reduce((a,b) => (a+b)) / smoothI.length)*0.022;
+      smoothI.shift();
+      resultantImpulse = new Ammo.btVector3(autoDir.x,0,autoDir.z);
+  	}    
+    resultantImpulse.op_mul(5);
 
-                
+    const physicsBody = ballObject.userData.physicsBody;
+    var vel = physicsBody.getLinearVelocity();
+    //physicsBody.setAngularVelocity(new Ammo.btVector3(0,0,0))
+    //physicsBody.setLinearVelocity(test.op_mul(0.97));
+    //physicsBody.applyForce( resultantImpulse);
+    vel.op_add(resultantImpulse);
+    physicsBody.setLinearVelocity(vel.op_mul(0.97));
+    var side = new THREE.Vector3(vel.x(),0,vel.z());
+ 	
+    var len = side.length()*0.02;
+    characterDir.normalize();
+    characterDir.cross(new THREE.Vector3(0,1,0));
+    side.normalize();
 
-                let autoDir = new THREE.Vector3();
-                if(posCurve){autoDir = posCurve.clone().sub(characterPos)};
-                
-                autoDir.y = 0;		
-                autoDir.normalize();
-
-                let resultantImpulse;
-                if(!autoMode){
-	                smoothI.push(moveX); 
-	                ballHolder.rotation.y-=(smoothI.reduce((a,b) => (a+b)) / smoothI.length)*0.022;
-	                smoothI.shift();
-	                resultantImpulse = new Ammo.btVector3( characterDir.x*moveZ, 0, characterDir.z*moveZ )
-	            	}
-              	else{
-	                smoothI.push(characterDir.clone().cross(new THREE.Vector3(0,-1,0)).dot(autoDir)); 
-	                ballHolder.rotation.y-=(smoothI.reduce((a,b) => (a+b)) / smoothI.length)*0.022;
-	                smoothI.shift();
-	                resultantImpulse = new Ammo.btVector3(autoDir.x,0,autoDir.z);
-	            }
-
-                
-                resultantImpulse.op_mul(5);
-
-                let physicsBody = ballObject.userData.physicsBody;
-                let test = physicsBody.getLinearVelocity();
-                //physicsBody.setAngularVelocity(new Ammo.btVector3(0,0,0))
-                //physicsBody.setLinearVelocity(test.op_mul(0.97));
-                //physicsBody.applyForce( resultantImpulse);
-                test.op_add(resultantImpulse);
-                physicsBody.setLinearVelocity(test.op_mul(0.97));
-                let side = new THREE.Vector3(test.x(),0,test.z());
-             	
-                let len = side.length()*0.02;
-                characterDir.normalize();
-                characterDir.cross(new THREE.Vector3(0,1,0));
-                side.normalize();
-
-                smoothZ.push(characterDir.dot(side)*len);
-                smoothX.push(test.y());
-                hover.rotation.x = (smoothX.reduce((a,b) => (a+b)) / smoothX.length)*0.005
-                hover.rotation.z = -(smoothZ.reduce((a,b) => (a+b)) / smoothZ.length)*0.4;
-                	
-                smoothX.shift();
-                smoothZ.shift();
-                moveX = 0;
-                moveZ = 0;
-
-
-
-            }
+    smoothZ.push(characterDir.dot(side)*len);
+    smoothX.push(vel.y());
+    hover.rotation.x = (smoothX.reduce((a,b) => (a+b)) / smoothX.length)*0.005
+    hover.rotation.z = -(smoothZ.reduce((a,b) => (a+b)) / smoothZ.length)*0.4;
+    	
+    smoothX.shift();
+    smoothZ.shift();
+    moveX = 0;
+    moveZ = 0;
+}
 
             function updatePhysics( deltaTime ){
 
@@ -1577,34 +1744,50 @@ if(pt.length>1){
             function renderFrame(){
 
                 let deltaTime = clock.getDelta();
-                //map.update(deltaTime);
-                
+                if(activeScene == mapScene){
+                	mapPlayer.position.copy(ballHolder.getWorldPosition(new THREE.Vector3));
+                	map.update(deltaTime);
+                	const minPan = new THREE.Vector3( - 6000, - 6000, - 6000 );
+									const maxPan = new THREE.Vector3( 6000, 6000, 6000 );
+                	controls.target.clamp( minPan, maxPan );
+                	controls.update();
+                }
+                interact();
+                ctrl.update();
                 mixers.forEach(function(mixer) {mixer.update(deltaTime*0.5)});
                 
 
-                //
+                
     						botTimer += deltaTime;
-    					if(botTimer>5){
-    						botTimer=0;
-    						let pos = {x: 200, y: 80, z: -200};
-    						const newbot = new ridingBot(pos);
-    						lastId+=1;
-    						newbot.id = lastId;
+		    					if(botTimer>5 && bots.length <15){	
+		    						botTimer=0;
+		    						var botOffset = new THREE.Vector3(Math.random(),0,Math.random())	;
+		    						botOffset.normalize();	
+		    						botOffset.multiplyScalar(300);
+		    						botOffset.add(new THREE.Vector3(0,90,0));
+		    						console.log(botOffset);
 
-    						bots.push(newbot);
-    					}
+		    						let pos = ballHolder.getWorldPosition(new THREE.Vector3()).add(botOffset);
+		    						const newbot = new ridingBot(pos);
+		    						lastId+=1;
+		    						newbot.id = lastId;
+
+		    						bots.push(newbot);
+		    					}
+		    					
     						bots.forEach(function(bot){bot.update()});
                 
                 
 
-                //animPolesTexture.map.offset.y += deltaTime*0.3;
 
-                //sc01.children[0].children[0].rotation.y +=deltaTime*0.3;
-                //sc02.children[0].children[0].rotation.y +=deltaTime*0.3;
-                //sc03.children[0].children[0].rotation.y +=deltaTime*0.3;
                 moveBall();
                 cameraHolder.rotation.y = ctrl.rot.y*2;
-                ctrl.update();
+
+
+
+
+                
+                
                 moveX = ctrl.velocity.x*1.5;
                 moveZ = ctrl.velocity.z*1.5;
 
@@ -1613,12 +1796,11 @@ if(pt.length>1){
 
                 mixer.update( deltaTime*0.65 );
                 botType01mixer.update( deltaTime*0.65 );
-                //mixer2.update( deltaTime*0.65 );
 
                 updatePhysics( deltaTime );
     						renderer.render( activeScene, activeCamera );
-                requestAnimationFrame( renderFrame );
-                interact();
+                requestAnimationFrame(renderFrame);
+                
             }
 
             function interact(){
@@ -1630,44 +1812,74 @@ if(pt.length>1){
 								const dist = element.position.distanceTo(playerWP);
 								if(dist<clDist){clDist=dist;clElem=element};	
 							});
-							if(clDist<120)console.log(clElem.name);
+							if(clDist<120){
+							intfShopButton.style.opacity = THREE.MathUtils.mapLinear(clDist,120.0,80.0,0.0,1.0);
+							intfShopDiv.style.opacity = THREE.MathUtils.mapLinear(clDist,120.0,80.0,0.0,1.0);
+							intfShopButton.style.display = "block";
+							}
+							else{
+							intfShopButton.style.display = "none";
+							if(intfShopDiv.style.display == "block"){
+            		document.getElementById("accButton").style.display = "block";
+            		document.getElementById("mapButton").style.display = "block";
+            		intfShopDiv.style.display = "none";
+							}
+							}
             };
 
-            function autoChange(){
- 							document.getElementById("autoButton").style.display = "none";
+            function exitChange(){
+ 							document.getElementById("exitButton").style.display = "none";
+ 							autoMode = 0;
+ 							visitList = [];
  							pt = [];
-            }
+ 							map.createCharacterPath([new THREE.Vector3()])
+            }	
 
             function mapChange(){
             	const cameraSwith = activeCamera;
             	if(cameraSwith==mapCamera){
             		activeScene = playerScene;
-            		document.getElementById("shopButton").style.display = "block";
+            		document.getElementById("shopHolder").style.display = "block";
+            		document.getElementById("accHolder").style.display = "block";
             		document.getElementsByClassName("movement-pad")[0].style.display = "block";
             		activeCamera = playerCamera;
             	};
             	if(cameraSwith==playerCamera){
             		activeScene = mapScene;
-            		document.getElementById("shopButton").style.display = "none";
+            		document.getElementById("shopHolder").style.display = "none";
+            		document.getElementById("accHolder").style.display = "none";
             		document.getElementsByClassName("movement-pad")[0].style.display = "none";
             		activeCamera = mapCamera;
             	};  
             }
 
             function shopChange(){
-            	const cameraSwith = activeCamera;
-            	if(cameraSwith==shopCamera){
-            		//activeScene = playerScene;
-            		document.getElementById("mapButton").style.display = "block";
-            		document.getElementsByClassName("movement-pad")[0].style.display = "block";
-            		activeCamera = playerCamera;
-            	};
-            	if(cameraSwith==playerCamera){
-            		//activeScene = mapScene;
-            		document.getElementById("mapButton").style.display = "none";
-            		document.getElementsByClassName("movement-pad")[0].style.display = "none";
-            		activeCamera = shopCamera;
-            	};  
+            	if(document.getElementById("shopDiv").style.display == "none"){
+            	document.getElementById("accButton").style.display = "none";
+            	document.getElementById("mapButton").style.display = "none";
+            	document.getElementById("shopDiv").style.display = "block";
+            	}
+            	else{
+            	document.getElementById("accButton").style.display = "block";
+            	document.getElementById("mapButton").style.display = "block";
+            	document.getElementById("shopDiv").style.display = "none";	
+            	}
+            }
+
+            function accChange(){
+            	if(document.getElementById("accDiv").style.display == "none"){
+            	document.getElementById("shopHolder").style.display = "none";
+            	document.getElementById("mapButton").style.display = "none";
+            	document.getElementById("accDiv").style.display = "block";
+            	document.getElementsByClassName("movement-pad")[0].style.display = "none";
+            	}
+            	else{
+							document.getElementById("shopHolder").style.display = "block";
+            	document.getElementById("mapButton").style.display = "block";
+            	document.getElementById("accDiv").style.display = "none";
+            	document.getElementsByClassName("movement-pad")[0].style.display = "block";	
+            	}
+
             }
 
 

@@ -77,7 +77,8 @@ class MovementPad {
 
     alignAndConfigPad(canvas) {
         //this.padElement.style.top = 800 
-        this.padElement.style.left =  window.innerWidth/2-500/2
+        this.padElement.style.left =  window.innerWidth/2-300/2
+
         //this.padElement.style.left =  0
         this.padElement.style.top =  window.innerHeight-300
         //this.padElement.style = window.innerWidth
