@@ -1,0 +1,262 @@
+{
+	"accessors": [
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 204,
+			"max": [
+				929.8672485351563,
+				98.11834716796875,
+				1345.542724609375
+			],
+			"min": [
+				916.7955322265625,
+				-98.11831665039063,
+				512.686279296875
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5125,
+			"count": 768,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 425,
+			"max": [
+				916.795654296875,
+				115.2056655883789,
+				1362.630126953125
+			],
+			"min": [
+				54.16552734375,
+				-115.20564270019531,
+				495.5990295410156
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 4,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 425,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 5,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 425,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 6,
+			"byteOffset": 0,
+			"componentType": 5125,
+			"count": 2112,
+			"type": "SCALAR"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Mon Dec 25 15:06:09 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Professional",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 89592,
+			"byteOffset": 0
+		},
+		{
+			"buffer": 0,
+			"byteLength": 2448,
+			"byteOffset": 89592,
+			"byteStride": 12,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 3072,
+			"byteOffset": 92040,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 5100,
+			"byteOffset": 95112,
+			"byteStride": 12,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 5100,
+			"byteOffset": 100212,
+			"byteStride": 12,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 3400,
+			"byteOffset": 105312,
+			"byteStride": 8,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 8448,
+			"byteOffset": 108712,
+			"target": 34963
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 117160,
+			"uri": "light_arcs_2_opt.bin"
+		}
+	],
+	"extensionsRequired": [
+		"KHR_texture_basisu"
+	],
+	"extensionsUsed": [
+		"KHR_texture_basisu"
+	],
+	"images": [
+		{
+			"bufferView": 0,
+			"mimeType": "image/ktx2",
+			"name": "light_arcs_c2.png"
+		}
+	],
+	"materials": [
+		{
+			"doubleSided": true,
+			"name": "black",
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [
+					0.0,
+					0.0,
+					0.0,
+					1.0
+				],
+				"metallicFactor": 0.0
+			}
+		},
+		{
+			"doubleSided": true,
+			"emissiveFactor": [
+				0.20000001788139343,
+				0.20000001788139343,
+				0.20000000298023224
+			],
+			"emissiveTexture": {
+				"index": 0
+			},
+			"name": "light_arc2",
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 0
+				},
+				"metallicFactor": 0.0,
+				"roughnessFactor": 0.9399999976158142
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "ligh_arc002",
+			"primitives": [
+				{
+					"attributes": {
+						"POSITION": 0
+					},
+					"indices": 1,
+					"material": 0,
+					"mode": 4
+				},
+				{
+					"attributes": {
+						"NORMAL": 3,
+						"POSITION": 2,
+						"TEXCOORD_0": 4
+					},
+					"indices": 5,
+					"material": 1,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"matrix": [
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"mesh": 0,
+			"name": "ligh_arc002"
+		},
+		{
+			"children": [
+				0
+			],
+			"matrix": [
+				-4.371138828673797e-08,
+				-1.0,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				-1.0,
+				0.0,
+				1.0,
+				-4.371138828673797e-08,
+				0.0,
+				0.0,
+				1.1503509521484376,
+				9.291146240234376,
+				-4.934741821289062,
+				1.0
+			]
+		}
+	],
+	"scenes": [
+		{
+			"nodes": [
+				1
+			]
+		}
+	],
+	"textures": [
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 0
+				}
+			},
+			"name": "texture_source2_sampler2"
+		}
+	]
+}

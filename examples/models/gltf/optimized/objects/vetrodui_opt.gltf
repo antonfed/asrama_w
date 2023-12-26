@@ -1,0 +1,605 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 333,
+			"max": [
+				103.08154296875,
+				98.99659729003906,
+				18.81436538696289
+			],
+			"min": [
+				-85.25556945800781,
+				-97.03924560546875,
+				-2.385523455324009e-22
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 333,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 333,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5125,
+			"count": 1125,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 4,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 78,
+			"max": [
+				3.1302642822265625,
+				3.0827085971832275,
+				355.5890197753906
+			],
+			"min": [
+				-3.1302642822265625,
+				-3.0827088356018066,
+				0.0
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 5,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 78,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 6,
+			"byteOffset": 0,
+			"componentType": 5125,
+			"count": 216,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 7,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 5,
+			"max": [
+				1.0
+			],
+			"min": [
+				0.0
+			],
+			"normalized": false,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 8,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 5,
+			"max": [
+				0.0,
+				0.0,
+				1.0,
+				1.0
+			],
+			"min": [
+				0.0,
+				0.0,
+				-8.742277657347586e-08,
+				-1.0
+			],
+			"normalized": false,
+			"type": "VEC4"
+		}
+	],
+	"animations": [
+		{
+			"channels": [
+				{
+					"sampler": 0,
+					"target": {
+						"node": 0,
+						"path": "rotation"
+					}
+				}
+			],
+			"samplers": [
+				{
+					"input": 7,
+					"interpolation": "LINEAR",
+					"output": 8
+				}
+			]
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Mon Dec 25 15:12:37 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Professional",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 3996,
+			"byteOffset": 0,
+			"byteStride": 12,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 3996,
+			"byteOffset": 3996,
+			"byteStride": 12,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 2664,
+			"byteOffset": 7992,
+			"byteStride": 8,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 4500,
+			"byteOffset": 10656,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 936,
+			"byteOffset": 15156,
+			"byteStride": 12,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 936,
+			"byteOffset": 16092,
+			"byteStride": 12,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 864,
+			"byteOffset": 17028,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 20,
+			"byteOffset": 17892
+		},
+		{
+			"buffer": 0,
+			"byteLength": 80,
+			"byteOffset": 17912
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 17992,
+			"uri": "vetrodui_opt.bin"
+		}
+	],
+	"extensions": {
+		"KHR_materials_variants": {
+			"variants": [
+				{
+					"name": "vetrodui_blades_02"
+				},
+				{
+					"name": "vetrodui_blades_03"
+				},
+				{
+					"name": "vetrodui_blades_04"
+				},
+				{
+					"name": "vetrodui_blades_06"
+				},
+				{
+					"name": "vetrodui_blades_07"
+				}
+			]
+		}
+	},
+	"extensionsRequired": [
+		"KHR_texture_basisu"
+	],
+	"extensionsUsed": [
+		"KHR_materials_variants",
+		"KHR_texture_basisu"
+	],
+	"images": [
+		{
+			"mimeType": "image/ktx2",
+			"name": "vetrodui_2basecolortexture.png",
+			"uri": "vetrodui_2basecolortexture.png.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "vetrodui_2metallicroughnesstex.png",
+			"uri": "vetrodui_2metallicroughnesstex.png.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "vtdg4",
+			"uri": "vtdg4.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "vtdg5",
+			"uri": "vtdg5.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "vtdg6",
+			"uri": "vtdg6.ktx2"
+		},
+		{
+			"mimeType": "image/png",
+			"name": "vtdg4",
+			"uri": "vtdg4.png"
+		}
+	],
+	"materials": [
+		{
+			"name": "vetrodui_1",
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [
+					0.9144740104675293,
+					0.9144740104675293,
+					0.9144740104675293,
+					1.0
+				],
+				"metallicFactor": 0.14000000059604645,
+				"roughnessFactor": 0.05000000074505806
+			}
+		},
+		{
+			"doubleSided": true,
+			"name": "vetrodui_blades_06",
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [
+					0.9996039867401123,
+					0.9539470076560974,
+					0.970691978931427,
+					1.0
+				],
+				"baseColorTexture": {
+					"index": 2
+				},
+				"metallicFactor": 0.800000011920929,
+				"roughnessFactor": 0.05
+			}
+		},
+		{
+			"doubleSided": true,
+			"name": "vetrodui_blades_07",
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [
+					0.9996039867401123,
+					0.9539470076560974,
+					0.970691978931427,
+					1.0
+				],
+				"baseColorTexture": {
+					"index": 0
+				},
+				"metallicFactor": 0.800000011920929,
+				"metallicRoughnessTexture": {
+					"index": 1
+				},
+				"roughnessFactor": 0.05
+			}
+		},
+		{
+			"doubleSided": true,
+			"name": "vetrodui_blades_08",
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [
+					0.9996039867401123,
+					0.9539470076560974,
+					0.970691978931427,
+					1.0
+				],
+				"baseColorTexture": {
+					"index": 3
+				},
+				"metallicFactor": 0.800000011920929,
+				"roughnessFactor": 0.05
+			}
+		},
+		{
+			"doubleSided": true,
+			"name": "vetrodui_blades_11",
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [
+					0.9996039867401123,
+					0.9539470076560974,
+					0.970691978931427,
+					1.0
+				],
+				"baseColorTexture": {
+					"index": 3
+				},
+				"metallicFactor": 0.800000011920929,
+				"metallicRoughnessTexture": {
+					"index": 5
+				},
+				"roughnessFactor": 0.05
+			}
+		},
+		{
+			"doubleSided": true,
+			"name": "vetrodui_blades_12",
+			"pbrMetallicRoughness": {
+				"baseColorFactor": [
+					0.9996039867401123,
+					0.9539470076560974,
+					0.970691978931427,
+					1.0
+				],
+				"baseColorTexture": {
+					"index": 4
+				},
+				"metallicFactor": 0.800000011920929,
+				"metallicRoughnessTexture": {
+					"index": 5
+				},
+				"roughnessFactor": 0.05
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "Sphere001",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 1,
+						"POSITION": 0,
+						"TEXCOORD_0": 2
+					},
+					"extensions": {
+						"KHR_materials_variants": {
+							"mappings": [
+								{
+									"material": 3,
+									"variants": [
+										2
+									]
+								},
+								{
+									"material": 5,
+									"variants": [
+										4
+									]
+								},
+								{
+									"material": 2,
+									"variants": [
+										1
+									]
+								},
+								{
+									"material": 4,
+									"variants": [
+										3
+									]
+								},
+								{
+									"material": 1,
+									"variants": [
+										0
+									]
+								}
+							]
+						}
+					},
+					"indices": 3,
+					"material": 3,
+					"mode": 4
+				}
+			]
+		},
+		{
+			"name": "Cylinder001",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 5,
+						"POSITION": 4
+					},
+					"indices": 6,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"mesh": 0,
+			"name": "Sphere001",
+			"rotation": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"scale": [
+				0.01,
+				0.01,
+				0.01
+			],
+			"translation": [
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"children": [
+				0
+			],
+			"matrix": [
+				1.0,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				0.9999999999999999,
+				4.371138828673793e-08,
+				0.0,
+				0.0,
+				-6.61851514707457e-08,
+				1.5141397714614873,
+				0.0,
+				-0.7001939392089844,
+				3.27551513671875,
+				-0.7001808929443359,
+				1.0
+			],
+			"name": "Unnamed Node 1"
+		},
+		{
+			"matrix": [
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"mesh": 1,
+			"name": "Cylinder001"
+		},
+		{
+			"children": [
+				2
+			],
+			"matrix": [
+				1.0,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				2.220446049250313e-16,
+				-1.0,
+				0.0,
+				0.0,
+				1.0,
+				2.220446049250313e-16,
+				0.0,
+				-0.699019775390625,
+				-0.00645263671875,
+				-0.7314241027832031,
+				1.0
+			],
+			"name": "Unnamed Node 3"
+		}
+	],
+	"samplers": [
+		{
+			"magFilter": 9729,
+			"minFilter": 9729,
+			"wrapS": 10497,
+			"wrapT": 10497
+		},
+		{
+			"magFilter": 9729,
+			"minFilter": 9729,
+			"wrapS": 10497,
+			"wrapT": 10497
+		},
+		{},
+		{},
+		{},
+		{}
+	],
+	"scenes": [
+		{
+			"nodes": [
+				1,
+				3
+			]
+		}
+	],
+	"textures": [
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 0
+				}
+			},
+			"name": "texture_source0_sampler0",
+			"sampler": 0
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 1
+				}
+			},
+			"name": "texture_source1_sampler1",
+			"sampler": 1
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 2
+				}
+			},
+			"name": "vtdg4",
+			"sampler": 2
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 3
+				}
+			},
+			"name": "vtdg5",
+			"sampler": 3
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 4
+				}
+			},
+			"name": "vtdg6",
+			"sampler": 4
+		},
+		{
+			"name": "vtdg4",
+			"sampler": 5,
+			"source": 5
+		}
+	]
+}

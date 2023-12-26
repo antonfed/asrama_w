@@ -46,10 +46,10 @@ body {
 
 .movement-pad .region {
 	position: absolute;
-	width: 300px;
-	height: 300px;
-	background: url("../images/nav_02.png") center center no-repeat;
-	/*border: 0px solid rgba(218, 225, 230, 0.25);*/
+	width: 200px;
+	height: 200px;
+	/*background: url("../images/nav_02.png") center center no-repeat;
+	border: 0px solid rgba(218, 225, 230, 0.25);*/
 	border-radius: 150px;
 	box-shadow: 0px 0px 5px rgba(194, 200, 204, 0.55);
 	user-select: none;
@@ -57,18 +57,19 @@ body {
 }
 
 .movement-pad .handle {
-	opacity: 0.1;
+	opacity: 1;
 	position: absolute;
 	height: 90px;
 	width: 90px;
 	top: 0px;
 	left: 0px;
-	background: radial-gradient(rgba(215, 225, 255, 0.70) 0%, rgba(215, 225, 255, 0.50) 100%);
-	/*border: 1px solid rgba(145, 105, 245, 0.90);*/
+	background: url("../images/nav_02.png") center center no-repeat;
+	/*border: 1px solid rgba(145, 105, 245, 0.90);
 	border-radius: 50%;
 	box-shadow: 0px 0px 7px rgba(195, 205, 245, 0.9);
 	text-align: center;
 	font: 24px/44px "Courier New", Courier, monospace;
+	*/
 	user-select: none;
 	touch-action: none;
 }

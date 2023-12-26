@@ -1,0 +1,204 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 978,
+			"max": [
+				164.96475219726563,
+				248.51583862304688,
+				19.23130989074707
+			],
+			"min": [
+				-58.352394104003906,
+				56.3502197265625,
+				-15.227655410766602
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 978,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 978,
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5125,
+			"count": 5328,
+			"type": "SCALAR"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Mon Dec 25 14:56:37 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Professional",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 11736,
+			"byteOffset": 0,
+			"byteStride": 12,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 11736,
+			"byteOffset": 11736,
+			"byteStride": 12,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 7824,
+			"byteOffset": 23472,
+			"byteStride": 8,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 21312,
+			"byteOffset": 31296,
+			"target": 34963
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 52608,
+			"uri": "bench_chrome_4_opt.bin"
+		}
+	],
+	"extensionsRequired": [
+		"KHR_texture_basisu"
+	],
+	"extensionsUsed": [
+		"KHR_texture_basisu"
+	],
+	"images": [
+		{
+			"mimeType": "image/ktx2",
+			"name": "bench_chrome2basecolortexture.png",
+			"uri": "bench_chrome2basecolortexture.png.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "bench_chrome2metallicroughnesstex.png",
+			"uri": "bench_chrome2metallicroughnesstex.png.ktx2"
+		}
+	],
+	"materials": [
+		{
+			"name": "bench_chrome2",
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 0
+				},
+				"metallicRoughnessTexture": {
+					"index": 1
+				}
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "bench_chrome_3",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 1,
+						"POSITION": 0,
+						"TEXCOORD_0": 2
+					},
+					"indices": 3,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"matrix": [
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"mesh": 0,
+			"name": "bench_chrome_3"
+		},
+		{
+			"children": [
+				0
+			],
+			"matrix": [
+				1.0,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				2.220446049250313e-16,
+				-1.0,
+				0.0,
+				0.0,
+				1.0,
+				2.220446049250313e-16,
+				0.0,
+				0.2571685791015625,
+				0.1271440029144287,
+				0.031117417812347413,
+				1.0
+			]
+		}
+	],
+	"scenes": [
+		{
+			"nodes": [
+				1
+			]
+		}
+	],
+	"textures": [
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 0
+				}
+			},
+			"name": "texture_source0_sampler0"
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 1
+				}
+			},
+			"name": "texture_source1_sampler1"
+		}
+	]
+}

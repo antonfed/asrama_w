@@ -1,0 +1,219 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 37602,
+			"max": [
+				9085.0
+			],
+			"min": [
+				0.0
+			],
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 9086,
+			"max": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"min": [
+				-1.0,
+				-1.0,
+				-1.0
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 9086,
+			"max": [
+				110.00749969482422,
+				175.55979919433594,
+				193.55743408203125
+			],
+			"min": [
+				-110.00730895996094,
+				-155.5597686767578,
+				-0.023320602253079414
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 9086,
+			"max": [
+				0.9939912557601929,
+				0.9900000095367432
+			],
+			"min": [
+				0.009999999776482582,
+				-0.0010683536529541016
+			],
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Sat Dec 16 12:22:59 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Professional",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 75204,
+			"byteOffset": 0
+		},
+		{
+			"buffer": 0,
+			"byteLength": 109032,
+			"byteOffset": 75204
+		},
+		{
+			"buffer": 0,
+			"byteLength": 109032,
+			"byteOffset": 184236
+		},
+		{
+			"buffer": 0,
+			"byteLength": 72688,
+			"byteOffset": 293268
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 365956,
+			"uri": "balenciaga_opt.bin"
+		}
+	],
+	"extensionsRequired": [
+		"KHR_texture_basisu"
+	],
+	"extensionsUsed": [
+		"KHR_texture_basisu"
+	],
+	"images": [
+		{
+			"mimeType": "image/ktx2",
+			"uri": "image_1.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"uri": "image_2.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"uri": "image_3.ktx2"
+		}
+	],
+	"materials": [
+		{
+			"alphaMode": "OPAQUE",
+			"name": "01 - Default",
+			"normalTexture": {
+				"index": 2
+			},
+			"occlusionTexture": {
+				"index": 1
+			},
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 0
+				},
+				"metallicRoughnessTexture": {
+					"index": 1
+				}
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "Rectangle001",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 1,
+						"POSITION": 2,
+						"TEXCOORD_0": 3
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"children": [
+				1
+			],
+			"name": "RootNode"
+		},
+		{
+			"children": [
+				2
+			],
+			"name": "Rectangle001",
+			"rotation": [
+				-0.70710676908493,
+				0.0,
+				0.0,
+				0.70710676908493
+			],
+			"translation": [
+				-0.539810180664062,
+				0.0,
+				0.269905090332031
+			]
+		},
+		{
+			"mesh": 0,
+			"name": "Rectangle001"
+		}
+	],
+	"scene": 0,
+	"scenes": [
+		{
+			"name": "Scene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"textures": [
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 0
+				}
+			}
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 1
+				}
+			}
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 2
+				}
+			}
+		}
+	]
+}

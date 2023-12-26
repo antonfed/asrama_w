@@ -34,6 +34,7 @@ class MovementPad {
         // Mouse events:
         this.region.addEventListener('mousedown', (event) => {
             this.mouseDown = true
+            //this.region.style.opacity = 0.0
             this.handle.style.opacity = 1.0
             this.update(event.pageX, event.pageY)
         })
@@ -77,10 +78,10 @@ class MovementPad {
 
     alignAndConfigPad(canvas) {
         //this.padElement.style.top = 800 
-        this.padElement.style.left =  window.innerWidth/2-300/2
+        this.padElement.style.left =  window.innerWidth/2-200/2
 
         //this.padElement.style.left =  0
-        this.padElement.style.top =  window.innerHeight-300
+        this.padElement.style.top =  window.innerHeight-200
         //this.padElement.style = window.innerWidth
 
         this.regionData.width = this.region.offsetWidth
@@ -160,7 +161,7 @@ class MovementPad {
     resetHandlePosition() {
         this.handle.style.top = this.regionData.centerY - this.handleData.radius + 'px'
         this.handle.style.left = this.regionData.centerX - this.handleData.radius + 'px'
-        this.handle.style.opacity = 0.1
+        //this.handle.style.opacity = 0.1
         // this.handle.animate({
         //     top: this.regionData.centerY - this.handleData.radius,
         //     left: this.regionData.centerX - this.handleData.radius,

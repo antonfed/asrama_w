@@ -2,7 +2,7 @@
     <head>
         <meta charset="utf-8">
 
-        <META name="viewport" content="initial-scale=0.66, user-scalable=no"> 
+        <META name="viewport" content="initial-scale=1, user-scalable=no"> 
         <title>JS 3D Physics</title>
         <link rel="stylesheet" href="css/touch-pad.css">
     	<link rel="stylesheet" href="css/main.css">
@@ -12,7 +12,7 @@
   			font-family: 'AshramFont';
   			src: url('./source/BB.woff2') format('woff2');
   			src: url('./source/BB.woff') format('woff');
-  			src: url('./source/BB.woff2') format('truetype');
+  			src: url('./source/BB.ttf') format('truetype');
 			}
 
       .ui {    		
@@ -52,39 +52,52 @@
 				cursor: pointer;
 			}
 			.shopBt{
-				width: 70px;
-				height: 70px;
+				width: 58px;
+				height: 58px;
 				background: transparent;
-				background-image: url("./source/shop_w.png");
+				background-image: url("./source/INTERACT.png");
 				background-size: cover;
   			background-position: center;
   			background-repeat: no-repeat;
 				border: 0;
-				border-radius: 50px;
 			}
 			.mapBt{
-				width: 70px;
-				height: 70px;
+				width: 58px;
+				height: 58px;
 				background: transparent;
-				background-image: url("./source/map_w02.png");
-				background-size: 58%;
+				background-image: url("./source/MAP.png");
   			background-position: center;
   			background-repeat: no-repeat;
 				border: 0;
-				border-radius: 50px;
 			}
 			.accBt{
-				width: 70px;
-				height: 70px;
+				width: 58px;
+				height: 58px;
 				background: transparent;
-				background-image: url("./source/acc_w02.png");
-				background-size: 40%;
+				background-image: url("./source/ACC.png");
   			background-position: center;
   			background-repeat: no-repeat;
 				border: 0;
-				border-radius: 50px;
 			}
-			.exitBt{
+			
+			.max-size-text {
+				font-size: 27vw;
+			  text-align: center;
+			  box-sizing: border-box; /* Optional: Include padding in the total width */
+
+
+			}
+/*MAP*/
+			#map_exitHolder {
+				position: absolute;
+	  		top: 70%;
+	  		left: 50%;
+	  		transform: translate(-50%, -0%);
+	      background: transparent;
+	      margin: 0;
+	      pointer-events:none;
+	    	}
+			#map_exit{
 				width: 70px;
 				height: 70px;
 				background: transparent;
@@ -95,11 +108,82 @@
 				border: 0;
 				border-radius: 50px;
 			}
-			.max-size-text {
-				font-size: 27vw;
-			  text-align: center;
-			  box-sizing: border-box; /* Optional: Include padding in the total width */
+
+/*ACC*/
+
+			.accMask{
+	    	clip-path: url(#accPath);
+	    	backdrop-filter: blur(10px);
+	    	margin: 0;
+	    	scale: 1;
+	    	}
+
+	    .acc{
+				position: absolute;
+	      top: 50%;
+	      left: 50%;
+				
+	      transform: translate(-50%, -50%);
+	      
+	      box-sizing: border-box;
+	      /*background-image: url("./source/SHOP_EDIT.png");
+				background-size: 100%;*/
+	  		background-position: center;
+	  		background-repeat: no-repeat;
+	      /*width: 90%;
+	      height: 60%;
+	    	*/
+	    	}
+
+/*SHOP*/
+
+			.shopMask{
+	    	clip-path: url(#shopPath);
+	    	backdrop-filter: blur(10px);
+	    	margin: 0;
+	    	scale: 1;
+	    	}
+
+			.shop{
+	      position: absolute;
+	      top: 50%;
+	      left: 50%;
+				
+	      transform: translate(-50%, -50%);
+	      
+	      box-sizing: border-box;
+	      /*background-image: url("./source/SHOP_EDIT.png");
+				background-size: 100%;*/
+	  		background-position: center;
+	  		background-repeat: no-repeat;
+	      /*width: 90%;
+	      height: 60%;
+	    	*/
+	    }
+
+/*BUTTON*/	
+			#shop_exitHolder {
+				position: absolute;
+	  		top: 12.5%;
+	  		left: 80%;
+	  		transform: translate(-50%, -0%);
+	      background: transparent;
+	      margin: 0;
+	      pointer-events:none;
+    	}
+
+			.exitButton{				
+				width: 70px;
+				height: 70px;
+				background: transparent;
+				background-image: url("./source/BUTTON_EXIT.png");
+				//background-size: 55%;
+  			background-position: center;
+  			background-repeat: no-repeat;
+  			border: 0;
 			}
+
+/*INTRO*/
 			#intro{
 				font-family: 'AshramFont', sans-serif;
 				position: absolute;
@@ -153,18 +237,11 @@
 			}
 
 
-			.exitHolder {
-			position: absolute;
-  		top: 70%;
-  		left: 50%;
-  		transform: translate(-50%, -0%);
-      background: transparent;
-      margin: 0;
-      pointer-events:none;
-    	}
+			
 			.shopHolder {
+			z-index: 10;
 			position: absolute;
-  		top: 70%;
+  		top: 40%;
   		left: 50%;
   		transform: translate(-50%, -0%);
       background: transparent;
@@ -189,30 +266,23 @@
       margin: 0;
       pointer-events:none;
     	}
-    	.shop{
-      position: absolute;
-      top: 40%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: white;
-      box-sizing: border-box;
-      background-image: url("./source/shop_temp.png");
-			background-size: 100%;
-  		background-position: center;
-  		background-repeat: repeat;
-      width: 90%;
-      height: 60%;
+    	.svg{
+    	position: absolute;
     	}
-    	.acc{
-      position: absolute;
-      background: radial-gradient(ellipse 200px 250px at 50% 65%,rgba(215, 225, 255, 0.00) 0%, rgba(215, 225, 255, 0.99) 100%);
-      top: 45%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      box-sizing: border-box;
-      width: 90%;
-      height: 75%;
+
+    	.loader_image{
+    	position: absolute;
+    	top: 60%;
+
+    	-webkit-animation:spin 4s linear infinite;
+    	-moz-animation:spin 4s linear infinite;
+    	animation:spin 4s linear infinite;	
     	}
+    	@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
+			@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
+			@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+    	
+    	
 
 
 
@@ -222,7 +292,7 @@
     <video id="video" loop crossOrigin="anonymous" playsinline style="display:none">
 			<source src="textures/lsm1_1.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
 		</video>
-			<div class="bar">
+			<div class="bar" style="display: none;">
 	    	<progress id="myBar" class="ui" id="loading" value="0" max="100">50%</progress>
 	    	<progress id="s1" class="ui" id="loading" value="0" max="100">50%</progress>
 	    	<progress id="s2" class="ui" id="loading" value="0" max="100">50%</progress>
@@ -230,6 +300,7 @@
 	    </div>
     	<div id="intro">
     		<p class="max-size-text ">ashram</p>
+    		<img id="loader_image" class="loader_image" src="./source/LOADER.png">
 			<button id="startButton" style="display: none;" class="ui">Play</button>
 		</div>
 		<div id="accHolder" class="accHolder">	
@@ -241,11 +312,37 @@
 		<div id="shopHolder" class="shopHolder">
 		<button id="shopButton" class="shopBt" style="display: none; "></button>
 		</div>
-		<div id="exitHolder" class="exitHolder">
-		<button id="exitButton" class="exitBt" style="display: none; "></button>
+		<div id="exitAutoHolder">
+		<button id="exitAuto" style="display: none; "></button>
+		
 		</div>
-		<div id="shopDiv" class="shop" style="display: none;"></div>
-		<div id="accDiv" class="acc" style="display: none;"></div>
+		<div id="shopDiv" class="shop"  style="display: none;"><img id="shopImg" class="shopMask" src="./source/SHOP_EDIT.png">
+			<div id="shop_exitHolder">
+			<button id="shop_exit" class="exitButton"></button>
+			</div>
+		</div>
+
+		<div id="accDiv" class="acc" style="display: none;"><img id="shopImg" class="accMask" src="./source/INVENTORY_ALL.png">
+			<div id="shop_exitHolder">
+			<button id="acc_exit" class="exitButton"></button>
+			</div>
+		</div>
+
+
+<svg width="0" height="0" viewBox="0 0 328 571" xmlns="http://www.w3.org/2000/svg" class="svg">
+<defs>
+<clipPath id="accPath" >
+<path d="M56 69.5C56 76.9521 49.7357 83 42 83L16 83C8.26802 83 2 89.268 2 97L2.00004 555C2.00004 562.732 8.26805 569 16 569H312C319.732 569 326 562.732 326 555L326 97C326 89.268 319.732 83 312 83L124 83C116.264 83 110 76.9521 110 69.5C110 62.048 116.264 56 124 56L205 56C212.732 56 219 49.732 219 42V16C219 8.26801 212.732 2 205 2L16 2.00004C8.26804 2.00004 2.00002 8.26805 2.00002 16L2.00003 42C2.00003 49.732 8.26804 56 16 56L42 56C49.7357 56 56 62.048 56 69.5Z" fill="purple" fill-opacity="0.5" stroke-opacity="0.8" stroke="#000000" transform="translate(31,110)" >
+</clipPath>	
+</defs>
+</svg>
+<svg width="0" height="0" viewBox="0 0 328 571" xmlns="http://www.w3.org/2000/svg" class="svg">
+<defs>
+<clipPath id="shopPath" >
+	<path d="M43 69.5C43 76.9521 36.7357 83 29 83H16C8.26802 83 2 89.268 2 97L2.00004 555C2.00004 562.732 8.26805 569 16 569H312C319.732 569 326 562.732 326 555L326 97C326 89.268 319.732 83 312 83L111 83C103.264 83 97 76.9521 97 69.5C97 62.0479 103.264 56 111 56L123 56C130.732 56 137 49.732 137 42V16C137 8.26801 130.732 2 123 2L16 2.00002C8.26801 2.00003 2.00001 8.26804 2.00001 16L2.00001 42C2.00002 49.732 8.26804 56 16 56L29 56C36.7357 56 43 62.048 43 69.5Z" fill="purple" fill-opacity="0.5" stroke-opacity="0.8" stroke="#000000" transform="translate(31,110)" >
+</clipPath>	
+</defs>
+</svg>
 
 
 
@@ -316,6 +413,9 @@ let cameraHolder = new THREE.Object3D();;
 let controls;
 let loader;
 let botType01 = new THREE.Object3D();
+let botType02 = new THREE.Object3D();
+let botType03 = new THREE.Object3D();
+let botList = [];
 let hover = new THREE.Object3D();
 
 let sky;
@@ -385,11 +485,12 @@ let prevStation;
 let prevPrevStation;
 let map;
 let mainFont;
+let auxFont;
 
 let mapPlayer;
 
 let interactList = [];
-
+//document.getElementById("shopImg").scale=2;
 const intfExitButton = document.getElementById("exitButton")
 const intfShopButton = document.getElementById("shopButton")
 const intfMapButton = document.getElementById("mapButton")
@@ -401,7 +502,7 @@ const intfShopDiv = document.getElementById("shopDiv")
 
 
 
-let loaderList = ["bot_hover","bot_model","player_hover","player_model","sky","land","theater","wagons","objects","bounds","station01","station02","station03","station04","station05","music01","music02","music03"];
+let loaderList = ["bot_hover","bot_model01","bot_model02","bot_model03","player_hover","player_model","sky","land","theater","wagons","objects","bounds","station01","station02","station03","station04","station05","music01","music02","music03"];
 
 // vertex shader
 THREE.ShaderChunk.fog_pars_vertex += `
@@ -461,6 +562,7 @@ function progressLoad(item){
 }	
       
 function ready() {
+document.getElementById("loader_image").style.display = "none";
 document.getElementById("startButton").style.display = "block";
 document.getElementById( 'startButton').addEventListener( 'click', levelStart );;
 
@@ -468,17 +570,18 @@ const mapButton = document.getElementById( 'mapButton' );
 mapButton.addEventListener( 'click', mapChange );
 const shopButton = document.getElementById( 'shopButton' );
 shopButton.addEventListener( 'click', shopChange );
-const exitButton = document.getElementById( 'exitButton' );
-exitButton.addEventListener( 'click', exitChange );
 const accButton = document.getElementById( 'accButton' );
 accButton.addEventListener( 'click', accChange );
+//document.getElementById( 'map_exit' ).addEventListener( 'click', exitMenu );
+document.getElementById( 'acc_exit' ).addEventListener( 'click', exitMenu );
+document.getElementById( 'shop_exit' ).addEventListener( 'click', exitMenu );
 }
 
 function levelStart() {
 	playerScene.traverse( function( node ) {
-		if ( node.isMesh ) { 
-			node.frustumCulled = false;
-			node.onAfterRender = function(){node.frustumCulled = true;node.onAfterRender = function(){};};};
+		//if ( node.isMesh ) { 
+			//node.frustumCulled = false;
+			//node.onAfterRender = function(){node.frustumCulled = true;node.onAfterRender = function(){};};};
 	});
 
 	document.getElementById( 'intro' ).remove();
@@ -1043,29 +1146,47 @@ function setupGraphics(){
 
 	//LOAD FONT
 	const loaderFont = new FontLoader();
-	loaderFont.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
+	loaderFont.load( 'fonts/BASE&BLOOM_Regular.json', function ( font ) {
 	mainFont = font; 	
+	});
+	loaderFont.load( 'fonts/Effra Medium_Regular.json', function ( font ) {
+	auxFont = font; 	
 	});
 
 	//LOAD 3D OBJECTS
 
 	loader.load( 'hover.glb', function ( gltf ) {
-	gltf.scene.position.y=-1;
+	//gltf.scene.position.y=-1;
+	gltf.scene.scale.set(12,12,12);
 	botType01.add(gltf.scene);
-	botType01.scale.set(12,12,12);
+	botType02.add(gltf.scene);
+	botType03.add(gltf.scene);
 	progressLoad("bot_hover")
 	})
 
-	loader.load( 'ha_ktx.glb', function ( gltf ) {
-	gltf.scene.scale.set(1,1,1);
-	gltf.scene.position.y=-1;
-	botType01mixer = new THREE.AnimationMixer( gltf.scene );
-	var action = botType01mixer.clipAction( gltf.animations[ 0 ] );
-	action.play();
+
+	loader.load( 'optimized/characters/bgirl_fix1.glb', function ( gltf ) {
 	botType01.rotation.y = 3.14;
+	gltf.scene.scale.set(0.1,0.1,0.1);
 	botType01.add(gltf.scene);
-	progressLoad("bot_model")					
+	progressLoad("bot_model01")					
 	} );
+	loader.load( 'optimized/characters/kgirl_fix1.glb', function ( gltf ) {
+	botType02.rotation.y = 3.14;
+	gltf.scene.scale.set(0.1,0.1,0.1);
+	botType02.add(gltf.scene);
+	progressLoad("bot_model02")					
+	} );
+	loader.load( 'optimized/characters/kgirl2.glb', function ( gltf ) {	
+	botType03.rotation.y = 3.14;
+	gltf.scene.scale.set(0.1,0.1,0.1);
+	botType03.add(gltf.scene);
+	progressLoad("bot_model03")					
+	} );
+	botList.push(botType01);
+	botList.push(botType02);
+	botList.push(botType03);
+
 
 
 
@@ -1178,14 +1299,16 @@ function setupGraphics(){
 		}}
 		progressLoad("theater")
 	} );
-
+	
+	const wagon_loader = new GLTFLoader().setPath("models/gltf/optimized/wagons/")
+	wagon_loader.setKTX2Loader(ktx2Loader);
 	loader.load( 'wagon_placer.glb', function ( gltf ) {	
 		const placer = gltf.scene;											
 		gltf.scene.traverse( function( node ) {
 			if(node.name.includes("PL_")){
 				const obj_name = node.name.split("PL_")[1];
-				const path = 'optimized/'+obj_name+'.glb';
-				loader.load(path, function ( gltf ) {
+				const path = obj_name+'.gltf';
+				wagon_loader.load(path, function ( gltf ) {
 	  			gltf.scene.traverse( function( node ) {
 	  					if ( node.isMesh ) { 
 	  						node.material.envMap = textureCube;
@@ -1197,27 +1320,28 @@ function setupGraphics(){
 	      const lod01 = new THREE.Object3D();
 	      lod.addLevel( lod00, 1000 );
 	      lod.addLevel( lod01, 1500 );
-	      const obj = lod.clone();
 				const place = placer.getObjectByName(node.name);
 				place.updateWorldMatrix(true,false);							
-				obj.applyMatrix4(place.matrixWorld);
-				obj.name = obj_name;
-				interactList.push(obj);
-				playerScene.add(obj);
+				lod.applyMatrix4(place.matrixWorld);
+				lod.name = obj_name;
+				interactList.push(lod);
+	  		gltf.scene.name = path;
+				playerScene.add(lod);
 				});
 			}
 		});
 	progressLoad("wagons")
 	});
 
+	const object_loader = new GLTFLoader().setPath("models/gltf/optimized/objects/")
+	object_loader.setKTX2Loader(ktx2Loader);
 	animTexture01 = document.getElementById( 'video' );
 	const a_texture = new THREE.VideoTexture( animTexture01 );
-
 	loader.load( 'sc_placer.glb', function ( placer ) {	
 		const elements = placer.scene.children[0].children[0].children;
 		elements.forEach(function (element) {
-			const path ='optimized/'+element.name+'.glb';
-			loader.load(path, function ( gltf ) {							
+			const path =element.name+'.gltf';
+			object_loader.load(path, function ( gltf ) {							
 
 				const lod = new THREE.LOD();
 				const lod00 = gltf.scene;
@@ -1279,87 +1403,76 @@ function setupGraphics(){
 				});
 			});
 		});
-	progressLoad("objects")
+	
 	});
-
+	progressLoad("objects")
+	
 	loader.load( 'out_map.glb', function ( gltf ) {
 		mapScene.add(gltf.scene);
 		progressLoad("bounds")
 	});
+	
+	progressLoad("bounds")
 
+
+	
+	function createTextObj(name1,name2){
+		const textMaterial = new THREE.MeshPhongMaterial( { color: 0x080808, wireframe: false,opacity: 0.5 } );
+		const	h1TextGeo = new TextGeometry( name1, {font: mainFont,size: 300,height: 10,} );
+		const	h2TextGeo = new TextGeometry( name2.toUpperCase(), {font: auxFont,size: 120,height: 5,} );
+		h1TextGeo.center();
+		h2TextGeo.center();
+		h1TextGeo.computeBoundingBox()
+		h2TextGeo.computeBoundingBox()
+		var ratio = h1TextGeo.boundingBox.getSize(new THREE.Vector3).divide(h2TextGeo.boundingBox.getSize(new THREE.Vector3));
+		//h2TextGeo.scale(-ratio.negate().x,ratio.negate().x,-ratio.negate().x);
+		h2TextGeo.computeBoundingBox();
+		h1TextGeo.translate(0,h1TextGeo.boundingBox.getSize(new THREE.Vector3).y*0.5,0);
+		h2TextGeo.translate(0,-h2TextGeo.boundingBox.getSize(new THREE.Vector3).y*0.5,0);
+		h2TextGeo.translate(0,-40,0);
+		const objText = new THREE.Object3D;
+		objText.add(new THREE.Mesh( h1TextGeo, textMaterial ));
+		objText.add(new THREE.Mesh( h2TextGeo, textMaterial ));
+		objText.position.y=1600;
+		objText.rotation.y=THREE.MathUtils.degToRad(26);
+		return objText;
+	}
+
+	function createStation(name,h1,h2){
+		loader.load( name+'.glb', function ( gltf ) {
+			const stName = name;
+			gltf.scene.getObjectByName(stName+'_tube_out').material.alphaMap = alphaMap;
+			gltf.scene.getObjectByName(stName+'_tube_out').material.transparent = true;
+			gltf.scene.getObjectByName(stName+'_out').material = sphereMaterial;		
+			playerScene.add(gltf.scene.clone());
+			
+			const ts = touchSphere.clone()
+			ts.visible = false;
+			gltf.scene.getObjectByName(stName+'_out').add(ts)
+			
+			const posStation = gltf.scene.getObjectByName(stName+'_out').getWorldPosition(new THREE.Vector3()).multiply(new THREE.Vector3(1,0,1));
+			const textStation = createTextObj(h1,h2);
+			textStation.position.add(posStation)
+			gltf.scene.add(textStation);
+			
+			mapScene.add(gltf.scene);
+			intersect_map.push(ts);
+			progressLoad(stName)
+		});	
+	}
+	
 	const material1 = new THREE.MeshPhongMaterial( { color: 0xffaa00, flatShading: true, shininess: 0 } );
 	const sphere = new THREE.SphereGeometry( 150, 150, 150 );
-
 	const touchSphere = new THREE.Mesh( sphere, material1 );
 	mapPlayer = touchSphere.clone();
 	mapScene.add(mapPlayer);
 
-	loader.load( 'station01.glb', function ( gltf ) {		
-		gltf.scene.getObjectByName('station01_out').material = sphereMaterial;
-		gltf.scene.getObjectByName('station01_tube_out').material.alphaMap = alphaMap;
-		gltf.scene.getObjectByName('station01_tube_out').material.transparent = true;
-		const ts = touchSphere.clone()
-		ts.visible = false;
-		gltf.scene.getObjectByName('station01_out').add(ts)
-		const sc = gltf.scene;		
-		playerScene.add(sc.clone());
-		mapScene.add(sc);
-		intersect_map.push(ts); 
-		progressLoad("station01")		
-	});
+	createStation("station01","Beats","HipHop LoFi");
+	createStation("station02","Game To","Synthwave beats");
+	createStation("station03","Study Sun","HipHop/LoFi Beats");
+	createStation("station04","Dreamz","Beats to Sleep");
+	createStation("station05","Lego Block","Chill Beats");
 		
-	loader.load( 'station02.glb', function ( gltf ) {
-		gltf.scene.getObjectByName('station02_out').material = sphereMaterial;		
-		gltf.scene.getObjectByName('station02_tube_out').material.alphaMap = alphaMap;
-		gltf.scene.getObjectByName('station02_tube_out').material.transparent = true;
-		const ts = touchSphere.clone()
-		ts.visible = false;
-		gltf.scene.getObjectByName('station02_out').add(ts)
-		const sc = gltf.scene;
-		playerScene.add(sc.clone());
-		mapScene.add(sc);
-		intersect_map.push(ts);
-		progressLoad("station02")
-	});
-	loader.load( 'station03.glb', function ( gltf ) {
-		gltf.scene.getObjectByName('station03_tube_out').material.alphaMap = alphaMap;
-		gltf.scene.getObjectByName('station03_tube_out').material.transparent = true;
-		gltf.scene.getObjectByName('station03_out').material = sphereMaterial;		
-		const ts = touchSphere.clone()
-		ts.visible = false;
-		gltf.scene.getObjectByName('station03_out').add(ts)
-		const sc = gltf.scene;
-		playerScene.add(sc.clone());
-		mapScene.add(sc);
-		intersect_map.push(ts);
-		progressLoad("station03")
-	});
-loader.load( 'station04.glb', function ( gltf ) {
-		gltf.scene.getObjectByName('station04_tube_out').material.alphaMap = alphaMap;
-		gltf.scene.getObjectByName('station04_tube_out').material.transparent = true;
-		gltf.scene.getObjectByName('station04_out').material = sphereMaterial;		
-		const ts = touchSphere.clone()
-		ts.visible = false;
-		gltf.scene.getObjectByName('station04_out').add(ts)
-		const sc = gltf.scene;
-		playerScene.add(sc.clone());
-		mapScene.add(sc);
-		intersect_map.push(ts);
-		progressLoad("station04")
-	});
-loader.load( 'station05.glb', function ( gltf ) {
-		gltf.scene.getObjectByName('station05_tube_out').material.alphaMap = alphaMap;
-		gltf.scene.getObjectByName('station05_tube_out').material.transparent = true;
-		gltf.scene.getObjectByName('station05_out').material = sphereMaterial;		
-		const ts = touchSphere.clone()
-		ts.visible = false;
-		gltf.scene.getObjectByName('station05_out').add(ts)
-		const sc = gltf.scene;
-		playerScene.add(sc.clone());
-		mapScene.add(sc);
-		intersect_map.push(ts);
-		progressLoad("station05")
-	});
 }
 
 
@@ -1490,7 +1603,7 @@ class mapPath{
       		visitList.push(obj);
           const pos = Array.from(visitList, (x) => x.getWorldPosition(new THREE.Vector3()).multiply(new THREE.Vector3(1,0,1)));
         	autoMode = 1;
-	  			document.getElementById("exitButton").style.display = "block";
+	  			document.getElementById("exitAuto").style.display = "block";
 					this.createCharacterPath(pos);
 		}}
 		}
@@ -1557,7 +1670,7 @@ class ridingBot{
 
 
 	  //threeJS Section
-	  this.bot = this.botObject = new THREE.Mesh(new THREE.SphereGeometry(this.radius-19), new THREE.MeshPhongMaterial({color: 0xff0505}));
+	  this.bot = this.botObject = new THREE.Object3D();
 	  this.bot.position.set(this.pos.x, this.pos.y, this.pos.z);
 	 
 	  this.bot.castShadow = true;
@@ -1725,7 +1838,7 @@ function moveBall(){
 			else 
 			{
 			autoMode = 0;
-			document.getElementById("exitButton").style.display = "none";
+			document.getElementById("exitAuto").style.display = "none";
 			}
 
     if(!autoMode){
@@ -1864,7 +1977,6 @@ function moveBall(){
                 playerCamera.getWorldPosition(mapCameraHolder.position);
 
                 mixer.update( deltaTime*0.65 );
-                botType01mixer.update( deltaTime*0.65 );
 
                 updatePhysics( deltaTime );
     						renderer.render( activeScene, activeCamera );
@@ -1887,16 +1999,21 @@ function moveBall(){
 							intfShopButton.style.display = "block";
 							}
 							else{
-							intfShopButton.style.display = "none";
-							if(intfShopDiv.style.display == "block"){
-            		document.getElementById("accButton").style.display = "block";
-            		document.getElementById("mapButton").style.display = "block";
-            		intfShopDiv.style.display = "none";
-							}
+								if(intfShopDiv.style.display == "block")exitMenu();
 							}
             };
 
-            function exitChange(){
+            function exitMenu(){
+            	console.log("test");
+ 							document.getElementById("shopDiv").style.display = "none";
+ 							document.getElementById("accDiv").style.display = "none";
+ 							document.getElementById("accButton").style.display = "block";
+            	document.getElementById("mapButton").style.display = "block";
+            	document.getElementById("shopHolder").style.display = "block";
+            	document.getElementsByClassName("movement-pad")[0].style.display = "block";	
+            }	
+
+            function exitAuto(){
  							document.getElementById("exitButton").style.display = "none";
  							autoMode = 0;
  							visitList = [];
@@ -1923,32 +2040,18 @@ function moveBall(){
             }
 
             function shopChange(){
-            	if(document.getElementById("shopDiv").style.display == "none"){
             	document.getElementById("accButton").style.display = "none";
+            	document.getElementById("shopHolder").style.display = "none";
             	document.getElementById("mapButton").style.display = "none";
             	document.getElementById("shopDiv").style.display = "block";
-            	}
-            	else{
-            	document.getElementById("accButton").style.display = "block";
-            	document.getElementById("mapButton").style.display = "block";
-            	document.getElementById("shopDiv").style.display = "none";	
-            	}
             }
 
             function accChange(){
-            	if(document.getElementById("accDiv").style.display == "none"){
             	document.getElementById("shopHolder").style.display = "none";
+            	document.getElementById("accButton").style.display = "none";
             	document.getElementById("mapButton").style.display = "none";
             	document.getElementById("accDiv").style.display = "block";
             	document.getElementsByClassName("movement-pad")[0].style.display = "none";
-            	}
-            	else{
-							document.getElementById("shopHolder").style.display = "block";
-            	document.getElementById("mapButton").style.display = "block";
-            	document.getElementById("accDiv").style.display = "none";
-            	document.getElementsByClassName("movement-pad")[0].style.display = "block";	
-            	}
-
             }
 
 

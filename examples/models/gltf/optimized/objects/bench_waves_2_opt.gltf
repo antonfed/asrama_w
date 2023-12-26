@@ -1,0 +1,403 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5125,
+			"count": 13962,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2893,
+			"max": [
+				56.3205947875977,
+				87.9485931396484,
+				28.9025745391846
+			],
+			"min": [
+				-57.316104888916,
+				-90.2272415161133,
+				-16.2933521270752
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2893,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2893,
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Mon Dec 25 14:58:35 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Professional",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 55848,
+			"byteOffset": 0,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 34716,
+			"byteOffset": 55848,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 34716,
+			"byteOffset": 90564,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 23144,
+			"byteOffset": 125280,
+			"target": 34962
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 148424,
+			"uri": "bench_waves_2_opt.bin"
+		}
+	],
+	"extensions": {
+		"KHR_materials_variants": {
+			"variants": [
+				{
+					"name": "v_bm_concrete"
+				},
+				{
+					"name": "v_bm_blue"
+				},
+				{
+					"name": "v_bm_orange"
+				},
+				{
+					"name": "v_bm_pink"
+				},
+				{
+					"name": "v_bm_sand"
+				}
+			]
+		}
+	},
+	"extensionsRequired": [
+		"KHR_texture_basisu"
+	],
+	"extensionsUsed": [
+		"KHR_materials_variants",
+		"KHR_texture_basisu"
+	],
+	"images": [
+		{
+			"mimeType": "image/ktx2",
+			"uri": "image_1.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"uri": "image_2.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "NormalMap2",
+			"uri": "NormalMap2.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "bench_waves_bench_waves2_BaseColor",
+			"uri": "bench_waves_bench_waves2_BaseColor.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "w2",
+			"uri": "w2.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "w3",
+			"uri": "w3.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "w4",
+			"uri": "w4.ktx2"
+		}
+	],
+	"materials": [
+		{
+			"alphaMode": "OPAQUE",
+			"name": "bench_waves_concrete",
+			"normalTexture": {
+				"index": 2
+			},
+			"occlusionTexture": {
+				"index": 1
+			},
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 3
+				},
+				"metallicRoughnessTexture": {
+					"index": 1
+				}
+			}
+		},
+		{
+			"alphaMode": "OPAQUE",
+			"name": "bench_waves_blue",
+			"normalTexture": {
+				"index": 2
+			},
+			"occlusionTexture": {
+				"index": 1
+			},
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 0
+				},
+				"metallicRoughnessTexture": {
+					"index": 1
+				}
+			}
+		},
+		{
+			"alphaMode": "OPAQUE",
+			"name": "bench_waves_orange",
+			"normalTexture": {
+				"index": 2
+			},
+			"occlusionTexture": {
+				"index": 1
+			},
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 4
+				},
+				"metallicRoughnessTexture": {
+					"index": 1
+				}
+			}
+		},
+		{
+			"alphaMode": "OPAQUE",
+			"name": "bench_waves_pink",
+			"normalTexture": {
+				"index": 2
+			},
+			"occlusionTexture": {
+				"index": 1
+			},
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 5
+				},
+				"metallicRoughnessTexture": {
+					"index": 1
+				}
+			}
+		},
+		{
+			"alphaMode": "OPAQUE",
+			"name": "bench_waves_sand",
+			"normalTexture": {
+				"index": 2
+			},
+			"occlusionTexture": {
+				"index": 1
+			},
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 6
+				},
+				"metallicRoughnessTexture": {
+					"index": 1
+				}
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "Plane003",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 2,
+						"POSITION": 1,
+						"TEXCOORD_0": 3
+					},
+					"extensions": {
+						"KHR_materials_variants": {
+							"mappings": [
+								{
+									"material": 0,
+									"variants": [
+										0
+									]
+								},
+								{
+									"material": 1,
+									"variants": [
+										1
+									]
+								},
+								{
+									"material": 2,
+									"variants": [
+										2
+									]
+								},
+								{
+									"material": 3,
+									"variants": [
+										3
+									]
+								},
+								{
+									"material": 4,
+									"variants": [
+										4
+									]
+								}
+							]
+						}
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"children": [
+				1
+			],
+			"name": "RootNode"
+		},
+		{
+			"children": [
+				2
+			],
+			"name": "Plane003",
+			"rotation": [
+				-0.70710676908493,
+				0.0,
+				0.0,
+				0.70710676908493
+			],
+			"translation": [
+				162.437286376953,
+				14.6873044967651,
+				2.82885432243347
+			]
+		},
+		{
+			"mesh": 0,
+			"name": "Plane003"
+		}
+	],
+	"samplers": [
+		{
+			"magFilter": 9729,
+			"minFilter": 9985,
+			"wrapS": 10497,
+			"wrapT": 10497
+		},
+		{},
+		{},
+		{},
+		{},
+		{}
+	],
+	"scene": 0,
+	"scenes": [
+		{
+			"name": "Scene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"textures": [
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 0
+				}
+			},
+			"sampler": 0
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 1
+				}
+			},
+			"sampler": 0
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 2
+				}
+			},
+			"name": "NormalMap2",
+			"sampler": 1
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 3
+				}
+			},
+			"name": "bench_waves_bench_waves2_BaseColor",
+			"sampler": 2
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 4
+				}
+			},
+			"name": "w2",
+			"sampler": 3
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 5
+				}
+			},
+			"name": "w3",
+			"sampler": 4
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 6
+				}
+			},
+			"name": "w4",
+			"sampler": 5
+		}
+	]
+}

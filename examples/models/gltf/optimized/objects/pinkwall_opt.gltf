@@ -1,0 +1,361 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5125,
+			"count": 12240,
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2808,
+			"max": [
+				900.0,
+				100.000061035156,
+				700.0
+			],
+			"min": [
+				-100.000030517578,
+				-99.9999694824219,
+				-100.000030517578
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2808,
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 2808,
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Mon Dec 25 15:10:20 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Professional",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 48960,
+			"byteOffset": 0,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 33696,
+			"byteOffset": 48960,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 33696,
+			"byteOffset": 82656,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 22464,
+			"byteOffset": 116352,
+			"target": 34962
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 138816,
+			"uri": "pinkwall_opt.bin"
+		}
+	],
+	"extensions": {
+		"KHR_materials_variants": {
+			"variants": [
+				{
+					"name": "pinkwall_base"
+				},
+				{
+					"name": "pinkwall_sand1"
+				},
+				{
+					"name": "pinkwall_sand2"
+				},
+				{
+					"name": "pinkwall_sand3"
+				}
+			]
+		}
+	},
+	"extensionsRequired": [
+		"KHR_texture_basisu"
+	],
+	"extensionsUsed": [
+		"KHR_materials_variants",
+		"KHR_texture_basisu"
+	],
+	"images": [
+		{
+			"mimeType": "image/ktx2",
+			"uri": "image_1.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"uri": "image_2.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "01 - Default_baseColor",
+			"uri": "01 - Default_baseColor.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "1",
+			"uri": "1.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "2",
+			"uri": "2.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "3",
+			"uri": "3.ktx2"
+		}
+	],
+	"materials": [
+		{
+			"alphaMode": "OPAQUE",
+			"name": "pinkwall_base",
+			"normalTexture": {
+				"index": 1
+			},
+			"occlusionTexture": {
+				"index": 0
+			},
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 2
+				},
+				"metallicRoughnessTexture": {
+					"index": 0
+				}
+			}
+		},
+		{
+			"alphaMode": "OPAQUE",
+			"name": "pinkwall_sand1",
+			"normalTexture": {
+				"index": 1
+			},
+			"occlusionTexture": {
+				"index": 0
+			},
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 3
+				},
+				"metallicRoughnessTexture": {
+					"index": 0
+				}
+			}
+		},
+		{
+			"alphaMode": "OPAQUE",
+			"name": "pinkwall_sand2",
+			"normalTexture": {
+				"index": 1
+			},
+			"occlusionTexture": {
+				"index": 0
+			},
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 4
+				},
+				"metallicRoughnessTexture": {
+					"index": 0
+				}
+			}
+		},
+		{
+			"alphaMode": "OPAQUE",
+			"name": "pinkwall_sand3",
+			"normalTexture": {
+				"index": 1
+			},
+			"occlusionTexture": {
+				"index": 0
+			},
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 5
+				},
+				"metallicRoughnessTexture": {
+					"index": 0
+				}
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "GeoSphere001",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 2,
+						"POSITION": 1,
+						"TEXCOORD_0": 3
+					},
+					"extensions": {
+						"KHR_materials_variants": {
+							"mappings": [
+								{
+									"material": 0,
+									"variants": [
+										0
+									]
+								},
+								{
+									"material": 1,
+									"variants": [
+										1
+									]
+								},
+								{
+									"material": 2,
+									"variants": [
+										2
+									]
+								},
+								{
+									"material": 3,
+									"variants": [
+										3
+									]
+								}
+							]
+						}
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"children": [
+				1
+			],
+			"name": "RootNode"
+		},
+		{
+			"children": [
+				2
+			],
+			"name": "GeoSphere001",
+			"rotation": [
+				-0.70710676908493,
+				0.0,
+				0.0,
+				0.70710676908493
+			],
+			"translation": [
+				0.0,
+				100.0,
+				0.0
+			]
+		},
+		{
+			"mesh": 0,
+			"name": "GeoSphere001"
+		}
+	],
+	"samplers": [
+		{
+			"magFilter": 9729,
+			"minFilter": 9985,
+			"wrapS": 10497,
+			"wrapT": 10497
+		},
+		{},
+		{},
+		{},
+		{}
+	],
+	"scene": 0,
+	"scenes": [
+		{
+			"name": "Scene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"textures": [
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 0
+				}
+			},
+			"sampler": 0
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 1
+				}
+			},
+			"sampler": 0
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 2
+				}
+			},
+			"name": "01 - Default_baseColor",
+			"sampler": 1
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 3
+				}
+			},
+			"name": "1",
+			"sampler": 2
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 4
+				}
+			},
+			"name": "2",
+			"sampler": 3
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 5
+				}
+			},
+			"name": "3",
+			"sampler": 4
+		}
+	]
+}

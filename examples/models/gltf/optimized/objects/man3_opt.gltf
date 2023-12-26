@@ -1,0 +1,249 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 97896,
+			"max": [
+				17846.0
+			],
+			"min": [
+				0.0
+			],
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 17847,
+			"max": [
+				0.9998857378959656,
+				0.9999405145645142,
+				0.9999343156814575
+			],
+			"min": [
+				-0.9999815225601196,
+				-0.9996146559715271,
+				-0.9999763369560242
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 17847,
+			"max": [
+				73.91858673095703,
+				49.46651077270508,
+				114.02093505859375
+			],
+			"min": [
+				-73.9228744506836,
+				-55.611087799072266,
+				-19.71200942993164
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 17847,
+			"max": [
+				0.9999985098838806,
+				1.0
+			],
+			"min": [
+				0.0,
+				0.00233304500579834
+			],
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Mon Dec 25 15:08:46 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Professional",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 195792,
+			"byteOffset": 0
+		},
+		{
+			"buffer": 0,
+			"byteLength": 214164,
+			"byteOffset": 195792
+		},
+		{
+			"buffer": 0,
+			"byteLength": 214164,
+			"byteOffset": 409956
+		},
+		{
+			"buffer": 0,
+			"byteLength": 142776,
+			"byteOffset": 624120
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 766896,
+			"uri": "man3_opt.bin"
+		}
+	],
+	"extensionsRequired": [
+		"KHR_texture_basisu"
+	],
+	"extensionsUsed": [
+		"KHR_texture_basisu"
+	],
+	"images": [
+		{
+			"mimeType": "image/ktx2",
+			"name": "adskMatman3basecolortexture.png",
+			"uri": "adskMatman3basecolortexture.png.ktx2"
+		}
+	],
+	"materials": [
+		{
+			"name": "adskMatman3",
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 0
+				},
+				"metallicFactor": 0.05999999865889549,
+				"roughnessFactor": 0.9100000262260437
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "man3",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 1,
+						"POSITION": 2,
+						"TEXCOORD_0": 3
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"matrix": [
+				0.26468533277511597,
+				0.0,
+				-0.9643348455429075,
+				0.0,
+				-0.9643348455429075,
+				0.0,
+				-0.264685332775116,
+				0.0,
+				0.0,
+				1.0,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			]
+		},
+		{
+			"matrix": [
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"mesh": 0,
+			"name": "man3"
+		},
+		{
+			"children": [
+				1
+			],
+			"matrix": [
+				-0.9445999860763552,
+				1.110223053375975e-16,
+				-0.3282238841056824,
+				0.0,
+				-0.3282238841056824,
+				2.22044610675195e-16,
+				0.9445999860763551,
+				0.0,
+				1.6653345369377343e-16,
+				0.9999999999999996,
+				-2.2204460492503123e-16,
+				0.0,
+				1.072557830810547,
+				0.20195823669433594,
+				0.43789283752441405,
+				1.0
+			]
+		},
+		{
+			"matrix": [
+				0.8389541506767275,
+				2.6469779349529132e-23,
+				0.544202089309692,
+				0.0,
+				-8.866177753102955e-08,
+				0.9999999999999991,
+				1.3668298547031891e-07,
+				0.0,
+				-0.5442020893096918,
+				-1.6292068256150838e-07,
+				0.8389541506767273,
+				0.0,
+				0.6663145446777344,
+				1.0880740356445313,
+				-0.5283295440673829,
+				1.0
+			]
+		}
+	],
+	"scenes": [
+		{
+			"nodes": [
+				0,
+				2,
+				3
+			]
+		}
+	],
+	"textures": [
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 0
+				}
+			},
+			"name": "texture_source1_sampler1"
+		}
+	]
+}

@@ -1,0 +1,238 @@
+{
+	"accessors": [
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 51210,
+			"max": [
+				9364.0
+			],
+			"min": [
+				0.0
+			],
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 9365,
+			"max": [
+				0.9998941421508789,
+				0.999991238117218,
+				0.9999818801879883
+			],
+			"min": [
+				-0.9999998211860657,
+				-0.9993702173233032,
+				-0.9999909400939941
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 9365,
+			"max": [
+				86.56612396240234,
+				112.00953674316406,
+				21.83576202392578
+			],
+			"min": [
+				-87.68450164794922,
+				-112.70109558105469,
+				-44.80827713012695
+			],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 3,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 9365,
+			"max": [
+				0.9900000095367432,
+				0.9900000095367432
+			],
+			"min": [
+				0.009999999776482582,
+				0.012581229209899902
+			],
+			"type": "VEC2"
+		}
+	],
+	"asset": {
+		"extras": {
+			"created": "Mon Dec 25 14:57:38 2023"
+		},
+		"generator": "Gestaltor 2023.1.0 Titan Professional",
+		"version": "2.0"
+	},
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 102420,
+			"byteOffset": 0
+		},
+		{
+			"buffer": 0,
+			"byteLength": 112380,
+			"byteOffset": 102420
+		},
+		{
+			"buffer": 0,
+			"byteLength": 112380,
+			"byteOffset": 214800
+		},
+		{
+			"buffer": 0,
+			"byteLength": 74920,
+			"byteOffset": 327180
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 402100,
+			"uri": "bench_hole_3_opt.bin"
+		}
+	],
+	"extensionsRequired": [
+		"KHR_texture_basisu"
+	],
+	"extensionsUsed": [
+		"KHR_texture_basisu"
+	],
+	"images": [
+		{
+			"mimeType": "image/ktx2",
+			"name": "bench_hole_bench_hole2_Normal.png",
+			"uri": "bench_hole_bench_hole2_Normal.png.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "bench_hole2basecolortexture.png",
+			"uri": "bench_hole2basecolortexture.png.ktx2"
+		},
+		{
+			"mimeType": "image/ktx2",
+			"name": "bench_hole2metallicroughnesstex.png",
+			"uri": "bench_hole2metallicroughnesstex.png.ktx2"
+		}
+	],
+	"materials": [
+		{
+			"doubleSided": true,
+			"name": "bench_hole2",
+			"normalTexture": {
+				"index": 0
+			},
+			"pbrMetallicRoughness": {
+				"baseColorTexture": {
+					"index": 1
+				},
+				"metallicRoughnessTexture": {
+					"index": 2
+				}
+			}
+		}
+	],
+	"meshes": [
+		{
+			"name": "bench_hole002",
+			"primitives": [
+				{
+					"attributes": {
+						"NORMAL": 1,
+						"POSITION": 2,
+						"TEXCOORD_0": 3
+					},
+					"indices": 0,
+					"material": 0,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"matrix": [
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				0.01,
+				0.0,
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			],
+			"mesh": 0,
+			"name": "bench_hole002"
+		},
+		{
+			"children": [
+				0
+			],
+			"matrix": [
+				0.9396926164627075,
+				2.7755575604197136e-17,
+				0.34202015399932867,
+				-0.0,
+				0.34202015399932867,
+				-1.1102230241678854e-16,
+				-0.9396926164627075,
+				-0.0,
+				-2.7755575615628914e-17,
+				-1.0,
+				0.0,
+				-0.0,
+				-1.3516122436523437,
+				0.19055248260498048,
+				0.9854170227050781,
+				1.0
+			]
+		}
+	],
+	"scenes": [
+		{
+			"nodes": [
+				1
+			]
+		}
+	],
+	"textures": [
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 0
+				}
+			},
+			"name": "texture_source3_sampler3"
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 1
+				}
+			},
+			"name": "texture_source4_sampler4"
+		},
+		{
+			"extensions": {
+				"KHR_texture_basisu": {
+					"source": 2
+				}
+			},
+			"name": "texture_source5_sampler5"
+		}
+	]
+}
