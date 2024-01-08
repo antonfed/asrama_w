@@ -81,6 +81,9 @@
 			}
 			
 			.max-size-text {
+				top: 20%;
+				position: absolute;
+				font-family: 'AshramFont', sans-serif;
 				font-size: 27vw;
 			  text-align: center;
 			  box-sizing: border-box; /* Optional: Include padding in the total width */
@@ -185,8 +188,9 @@
 			}
 
 /*INTRO*/
+
 			#intro{
-				font-family: 'AshramFont', sans-serif;
+				text-align: center;
 				position: absolute;
 				font-size: 16px;
 				z-index: 2;
@@ -292,7 +296,7 @@
 
     	.loader_image{
     	position: absolute;
-    	top: 60%;
+    	top: 70%;
 
     	-webkit-animation:spin 4s linear infinite;
     	-moz-animation:spin 4s linear infinite;
@@ -318,10 +322,11 @@
 	    	<progress id="s2" class="ui" id="loading" value="0" max="100">50%</progress>
 	    	<progress id="s3" class="ui" id="loading" value="0" max="100">50%</progress>
 	    </div>
-    	<div id="intro">
-    		<p class="max-size-text ">ashram</p>
-    		<p id="progressLoad">100</p>
-    		<img id="loader_image" class="loader_image" src="./source/LOADER.png">
+    <div id="intro">
+    	<p class="max-size-text ">ashram</p>
+    	<p id="progressText">Wait a second, the universe is being updated for you ...</p>
+    	<p id="progressLoad">100</p>
+    	<img id="loader_image" class="loader_image" src="./source/LOADER.png">    	
 			<button id="startButton" style="display: none;" class="ui">Play</button>
 		</div>
 		<div id="accHolder" class="accHolder">	
@@ -584,6 +589,8 @@ function progressLoad(item){
 }	
       
 function ready() {
+document.getElementById("progressLoad").style.display = "none";
+document.getElementById("progressText").style.display = "none";
 document.getElementById("loader_image").style.display = "none";
 document.getElementById("startButton").style.display = "block";
 document.getElementById( 'startButton').addEventListener( 'click', levelStart );;
@@ -979,7 +986,7 @@ function setupMusic(){
 
 	loaderMusic.load('source/music/04.mp3',
 		function ( audioBuffer ) {					
-			sound3.setBuffer( audioBuffer );
+			sound4.setBuffer( audioBuffer );
 			progressLoad("music04")
 		},
 		function ( xhr ) {},
@@ -989,7 +996,7 @@ function setupMusic(){
 	loaderMusic.load('source/music/05.mp3',
 		function ( audioBuffer ) {
 			console.log( 'song3 play' );						
-			sound3.setBuffer( audioBuffer );
+			sound5.setBuffer( audioBuffer );
 			progressLoad("music05")
 		},
 		function ( xhr ) {},
@@ -1026,9 +1033,9 @@ function setupMusic(){
 	const mesh3 = new THREE.Mesh( sphere, material1 );
 	mesh3.position.set( -3000, 0, -3000 );
 	const mesh4 = new THREE.Mesh( sphere, material1 );
-	mesh3.position.set( -3000, 0, -6000 );
+	mesh4.position.set( -3000, 0, -6000 );
 	const mesh5 = new THREE.Mesh( sphere, material1 );
-	mesh3.position.set( -6000, 0, -6000 );
+	mesh5.position.set( -6000, 0, -6000 );
 
 	mesh1.add( sound1 );
 	mesh2.add( sound2 );
