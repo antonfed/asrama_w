@@ -320,6 +320,7 @@
 	    </div>
     	<div id="intro">
     		<p class="max-size-text ">ashram</p>
+    		<p id="progressLoad">100</p>
     		<img id="loader_image" class="loader_image" src="./source/LOADER.png">
 			<button id="startButton" style="display: none;" class="ui">Play</button>
 		</div>
@@ -461,7 +462,7 @@ let tileZmin = -2;
 let tileZmax = 2;
 let tileStep = -3001.5;
 
-let sound1,sound2,sound3;
+let sound1,sound2,sound3,sound4,sound5;
 
 let mapCamera;
 let mapCameraHolder;
@@ -519,7 +520,8 @@ const intfShopDiv = document.getElementById("shopDiv")
 
 
 
-let loaderList = ["bot_hover","bot_model01","bot_model02","bot_model03","player_hover","player_model","sky","land","theater","wagons","objects","bounds","station01","station02","station03","station04","station05","music01","music02","music03"];
+let loaderList = ["bot_hover","bot_model01","bot_model02","bot_model03","player_hover","player_model","sky","land","theater","wagons","objects","bounds","station01","station02","station03","station04","station05","music01","music02","music03","music04","music05"];
+let loaderListLength = loaderList.length;
 
 // vertex shader
 THREE.ShaderChunk.fog_pars_vertex += `
@@ -573,9 +575,12 @@ async function start () {
 }
 
 function progressLoad(item){
+	
 	var index = loaderList.indexOf(item);
-		if (index !== -1) {loaderList.splice(index, 1);}
-  	if(loaderList.length == 0)ready();
+	if (index !== -1) {loaderList.splice(index, 1);}
+  if(loaderList.length == 0)ready();
+  const pcnt = Math.floor((1-loaderList.length/loaderListLength*1.0)*100);
+  document.getElementById("progressLoad").innerHTML = pcnt.toString();
 }	
       
 function ready() {
@@ -937,41 +942,55 @@ function setupMusic(){
 	sound2.setLoop(true);
 	sound3 = new THREE.PositionalAudio( listener );
 	sound3.setLoop(true);
+	sound4 = new THREE.PositionalAudio( listener );
+	sound4.setLoop(true);
+	sound5 = new THREE.PositionalAudio( listener );
+	sound5.setLoop(true);
 
 	const loaderMusic = new THREE.AudioLoader(manager);
 
-	loaderMusic.load('sounds/radio01_x.mp3',
+	loaderMusic.load('source/music/01.mp3',
 		function ( audioBuffer ) {						
 			sound1.setBuffer( audioBuffer );
 			progressLoad("music01")
 			console.log( 'song1 play' );
-			var elem = document.getElementById("s1");
-			elem.value = 100;
 		},
 		function ( xhr ) {},
 		function ( err ) {console.log( 'An error happened' );}
 	);
 
-	loaderMusic.load('sounds/radio02_x.mp3',
+	loaderMusic.load('source/music/02.mp3',
 		function ( audioBuffer ) {						
-			console.log( 'song2 play' );
 			sound2.setBuffer( audioBuffer );
 			progressLoad("music02")
-			console.log( 'song2 play' );
-			var elem = document.getElementById("s2");
-			elem.value = 100;
 		},
 		function ( xhr ) {},
 		function ( err ) {console.log( 'An error happened' );}
 	);
 
-	loaderMusic.load('sounds/radio03.mp3',
+	loaderMusic.load('source/music/03.mp3',
+		function ( audioBuffer ) {					
+			sound3.setBuffer( audioBuffer );
+			progressLoad("music03")
+		},
+		function ( xhr ) {},
+		function ( err ) {console.log( 'An error happened' );}
+	);
+
+	loaderMusic.load('source/music/04.mp3',
+		function ( audioBuffer ) {					
+			sound3.setBuffer( audioBuffer );
+			progressLoad("music04")
+		},
+		function ( xhr ) {},
+		function ( err ) {console.log( 'An error happened' );}
+	);
+
+	loaderMusic.load('source/music/05.mp3',
 		function ( audioBuffer ) {
 			console.log( 'song3 play' );						
 			sound3.setBuffer( audioBuffer );
-			progressLoad("music03")
-			var elem = document.getElementById("s3");
-			elem.value = 100;
+			progressLoad("music05")
 		},
 		function ( xhr ) {},
 		function ( err ) {console.log( 'An error happened' );}
@@ -988,6 +1007,14 @@ function setupMusic(){
 	sound3.setRefDistance( 1300 );
 	sound3.setRolloffFactor(6);
 	sound3.setDistanceModel("exponential")
+
+	sound4.setRefDistance( 1300 );
+	sound4.setRolloffFactor(6);
+	sound4.setDistanceModel("exponential")
+
+	sound5.setRefDistance( 1300 );
+	sound5.setRolloffFactor(6);
+	sound5.setDistanceModel("exponential")
 	
 	const material1 = new THREE.MeshPhongMaterial( { color: 0xffaa00, flatShading: true, shininess: 0 } );
 	const sphere = new THREE.SphereGeometry( 20, 32, 16 );
@@ -998,12 +1025,21 @@ function setupMusic(){
 	mesh2.position.set( -3000, 0, 0 );
 	const mesh3 = new THREE.Mesh( sphere, material1 );
 	mesh3.position.set( -3000, 0, -3000 );
+	const mesh4 = new THREE.Mesh( sphere, material1 );
+	mesh3.position.set( -3000, 0, -6000 );
+	const mesh5 = new THREE.Mesh( sphere, material1 );
+	mesh3.position.set( -6000, 0, -6000 );
+
 	mesh1.add( sound1 );
 	mesh2.add( sound2 );
 	mesh3.add( sound3 );
+	mesh4.add( sound4 );
+	mesh5.add( sound5 );
+	playerScene.add( mesh1 );
 	playerScene.add( mesh2 );
 	playerScene.add( mesh3 );
-	playerScene.add( mesh1 );								
+	playerScene.add( mesh4 );
+	playerScene.add( mesh5 );										
 }
 
 function setupGraphics(){
