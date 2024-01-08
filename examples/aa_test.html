@@ -145,6 +145,7 @@
 	    	}
 
 			.shop{
+				z-index: 10;	
 	      position: absolute;
 	      top: 50%;
 	      left: 50%;
@@ -237,7 +238,26 @@
 			}
 
 
-			
+			#exitAutoHolder {
+			position: absolute;
+			z-index: 1;			
+  		top: 6%;
+  		left: 50%;
+  		transform: translate(-50%, -0%);
+      background: transparent;
+      margin: 0;
+      pointer-events:none;
+    	}
+    	#exitAutoButton{
+			width: 70px;
+			height: 58px;
+			background: transparent;
+			background-image: url("./source/EXIT_AUTO.png");
+			background-size: cover;
+			background-position: center;
+			background-repeat: no-repeat;
+			border: 0;
+			}
 			.shopHolder {
 			z-index: 10;
 			position: absolute;
@@ -312,10 +332,7 @@
 		<div id="shopHolder" class="shopHolder">
 		<button id="shopButton" class="shopBt" style="display: none; "></button>
 		</div>
-		<div id="exitAutoHolder">
-		<button id="exitAuto" style="display: none; "></button>
-		
-		</div>
+		<div id="exitAutoHolder"><button id="exitAutoButton" style="display: none; "></button></div>
 		<div id="shopDiv" class="shop"  style="display: none;"><img id="shopImg" class="shopMask" src="./source/SHOP_EDIT.png">
 			<div id="shop_exitHolder">
 			<button id="shop_exit" class="exitButton"></button>
@@ -572,7 +589,7 @@ const shopButton = document.getElementById( 'shopButton' );
 shopButton.addEventListener( 'click', shopChange );
 const accButton = document.getElementById( 'accButton' );
 accButton.addEventListener( 'click', accChange );
-//document.getElementById( 'map_exit' ).addEventListener( 'click', exitMenu );
+document.getElementById( 'exitAutoButton' ).addEventListener( 'click', exitAuto );
 document.getElementById( 'acc_exit' ).addEventListener( 'click', exitMenu );
 document.getElementById( 'shop_exit' ).addEventListener( 'click', exitMenu );
 }
@@ -1318,8 +1335,8 @@ function setupGraphics(){
 	  		const lod = new THREE.LOD();
 				const lod00 = gltf.scene;
 	      const lod01 = new THREE.Object3D();
-	      lod.addLevel( lod00, 1000 );
-	      lod.addLevel( lod01, 1500 );
+	      lod.addLevel( lod00, 400 );
+	      lod.addLevel( lod01, 700 );
 				const place = placer.getObjectByName(node.name);
 				place.updateWorldMatrix(true,false);							
 				lod.applyMatrix4(place.matrixWorld);
@@ -1346,8 +1363,8 @@ function setupGraphics(){
 				const lod = new THREE.LOD();
 				const lod00 = gltf.scene;
 	      const lod01 = new THREE.Object3D();
-	      lod.addLevel( lod00, 1000 );
-	      lod.addLevel( lod01, 1500 );
+	      lod.addLevel( lod00, 400 );
+	      lod.addLevel( lod01, 700 );
 												
 				element.children.forEach(function (element) {
 					
@@ -1603,7 +1620,7 @@ class mapPath{
       		visitList.push(obj);
           const pos = Array.from(visitList, (x) => x.getWorldPosition(new THREE.Vector3()).multiply(new THREE.Vector3(1,0,1)));
         	autoMode = 1;
-	  			document.getElementById("exitAuto").style.display = "block";
+	  			document.getElementById("exitAutoButton").style.display = "block";
 					this.createCharacterPath(pos);
 		}}
 		}
@@ -1838,7 +1855,7 @@ function moveBall(){
 			else 
 			{
 			autoMode = 0;
-			document.getElementById("exitAuto").style.display = "none";
+			document.getElementById("exitAutoButton").style.display = "none";
 			}
 
     if(!autoMode){
@@ -2014,7 +2031,7 @@ function moveBall(){
             }	
 
             function exitAuto(){
- 							document.getElementById("exitButton").style.display = "none";
+ 							document.getElementById("exitAutoButton").style.display = "none";
  							autoMode = 0;
  							visitList = [];
  							pt = [];
