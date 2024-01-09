@@ -15,6 +15,11 @@
   			src: url('./source/BB.ttf') format('truetype');
 			}
 
+			@font-face {
+  			font-family: 'Aeroport';
+  			src: url('./source/Brownfox - Aeroport.ttf') format('truetype');
+			}
+
       .ui {    		
     		top: 100px;
 			}
@@ -80,6 +85,14 @@
 				border: 0;
 			}
 			
+			#progressText{
+			font-family: 'Aeroport', sans-serif;
+			}
+
+			#progressLoad{
+			font-family: 'Aeroport', sans-serif;
+			}
+
 			.max-size-text {
 				top: 20%;
 				position: absolute;
@@ -148,7 +161,7 @@
 	    	}
 
 			.shop{
-				z-index: 10;	
+				z-index: 2;	
 	      position: absolute;
 	      top: 50%;
 	      left: 50%;
@@ -324,7 +337,7 @@
 	    </div>
     <div id="intro">
     	<p class="max-size-text ">ashram</p>
-    	<p id="progressText">Wait a second, the universe is being updated for you ...</p>
+    	<p id="progressText">Wait a second, the universe is being updated...</p>
     	<p id="progressLoad">100</p>
     	<img id="loader_image" class="loader_image" src="./source/LOADER.png">    	
 			<button id="startButton" style="display: none;" class="ui">Play</button>
@@ -585,7 +598,7 @@ function progressLoad(item){
 	if (index !== -1) {loaderList.splice(index, 1);}
   if(loaderList.length == 0)ready();
   const pcnt = Math.floor((1-loaderList.length/loaderListLength*1.0)*100);
-  document.getElementById("progressLoad").innerHTML = pcnt.toString();
+  document.getElementById("progressLoad").innerHTML = pcnt.toString()+"%";
 }	
       
 function ready() {
@@ -2074,6 +2087,7 @@ function moveBall(){
             }	
 
             function exitAuto(){
+            	document.getElementsByClassName("movement-pad")[0].style.display = "block";
  							document.getElementById("exitAutoButton").style.display = "none";
  							autoMode = 0;
  							visitList = [];
@@ -2087,7 +2101,7 @@ function moveBall(){
             		activeScene = playerScene;
             		document.getElementById("shopHolder").style.display = "block";
             		document.getElementById("accHolder").style.display = "block";
-            		document.getElementsByClassName("movement-pad")[0].style.display = "block";
+            		if(!autoMode)document.getElementsByClassName("movement-pad")[0].style.display = "block";
             		activeCamera = playerCamera;
             	};
             	if(cameraSwith==playerCamera){
@@ -2100,6 +2114,7 @@ function moveBall(){
             }
 
             function shopChange(){
+            	document.getElementsByClassName("movement-pad")[0].style.display = "none";
             	document.getElementById("accButton").style.display = "none";
             	document.getElementById("shopHolder").style.display = "none";
             	document.getElementById("mapButton").style.display = "none";
@@ -2107,6 +2122,7 @@ function moveBall(){
             }
 
             function accChange(){
+            	document.getElementsByClassName("movement-pad")[0].style.display = "none";
             	document.getElementById("shopHolder").style.display = "none";
             	document.getElementById("accButton").style.display = "none";
             	document.getElementById("mapButton").style.display = "none";
