@@ -91,6 +91,7 @@
 
 			#progressLoad{
 			font-family: 'Aeroport', sans-serif;
+
 			}
 
 			.max-size-text {
@@ -319,7 +320,20 @@
 			@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
 			@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
     	
-    	
+    	#moodMeter{
+    		font-family: 'Aeroport', sans-serif;
+    		font-size: 6vw;
+				text-align: center;
+    		pointer-events:none;
+    		z-index: 10;
+    		position: absolute;
+  			bottom: 0;
+  			width: 100%; /* Optionally, you can set a specific width */
+  			padding: 20px; /* Optionally, add padding for content inside the div */
+  			box-sizing: border-box; /* Include padding and border in the div's total width and height */
+  			background: linear-gradient(to right,#2bc0e4,#eaecc6);
+  			-webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 60%);
+    	}
 
 
 
@@ -363,6 +377,8 @@
 			<button id="acc_exit" class="exitButton"></button>
 			</div>
 		</div>
+
+		<div id="moodMeter" style="display: none;">FOCUS</div>
 
 
 <svg width="0" height="0" viewBox="0 0 328 571" xmlns="http://www.w3.org/2000/svg" class="svg">
@@ -1689,6 +1705,7 @@ class mapPath{
       		console.log(obj.stationMat.exmissive);
           const pos = Array.from(visitList, (x) => x.getWorldPosition(new THREE.Vector3()).multiply(new THREE.Vector3(1,0,1)));
         	autoMode = 1;
+        	document.getElementById("moodMeter").style.display = "block";
 	  			document.getElementById("exitAutoButton").style.display = "block";
 					this.createCharacterPath(pos);
 		}}
@@ -2105,6 +2122,7 @@ function moveBall(){
             function exitAuto(){
             	if(activeCamera!=mapCamera)document.getElementsByClassName("movement-pad")[0].style.display = "block";
  							document.getElementById("exitAutoButton").style.display = "none";
+ 							document.getElementById("moodMeter").style.display = "none";
  							autoMode = 0;
  							pt = [];
  							map.clearSelection();
