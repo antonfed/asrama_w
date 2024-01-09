@@ -1516,10 +1516,14 @@ function setupGraphics(){
 			const stName = name;
 			gltf.scene.getObjectByName(stName+'_tube_out').material.alphaMap = alphaMap;
 			gltf.scene.getObjectByName(stName+'_tube_out').material.transparent = true;
-			gltf.scene.getObjectByName(stName+'_out').material = sphereMaterial;		
-			playerScene.add(gltf.scene.clone());
+			const mat = sphereMaterial.clone();
 			
-			const ts = touchSphere.clone()
+			gltf.scene.getObjectByName(stName+'_out').material = mat;		
+			playerScene.add(gltf.scene.clone());	
+			const ts = touchSphere.clone()	
+
+			ts.stationMat = mat;
+			//ts.stationMat.emissive = new THREE.Color(0xffaa00);
 			ts.visible = false;
 			gltf.scene.getObjectByName(stName+'_out').add(ts)
 			
@@ -1624,6 +1628,12 @@ class mapPath{
 		return geometry;		
 	}
 
+	clearSelection(){
+		console.log("clean");
+		intersect_map.forEach(function(station) {station.stationMat.emissive = new THREE.Color(0x000000);});
+		visitList = [];
+	}
+
 	createCharacterPath(pos){
     this.characterCurve = new THREE.CatmullRomCurve3(pos);
     this.characterCurve.closed = true;
@@ -1674,6 +1684,9 @@ class mapPath{
       	var obj = intersects[ 0 ].object;
       	if(!visitList.includes(obj)){
       		visitList.push(obj);
+      		console.log(visitList);	
+      		obj.stationMat.emissive = new THREE.Color(0xffffff);
+      		console.log(obj.stationMat.exmissive);
           const pos = Array.from(visitList, (x) => x.getWorldPosition(new THREE.Vector3()).multiply(new THREE.Vector3(1,0,1)));
         	autoMode = 1;
 	  			document.getElementById("exitAutoButton").style.display = "block";
@@ -2090,11 +2103,11 @@ function moveBall(){
             }	
 
             function exitAuto(){
-            	document.getElementsByClassName("movement-pad")[0].style.display = "block";
+            	if(activeCamera!=mapCamera)document.getElementsByClassName("movement-pad")[0].style.display = "block";
  							document.getElementById("exitAutoButton").style.display = "none";
  							autoMode = 0;
- 							visitList = [];
  							pt = [];
+ 							map.clearSelection();
  							map.createCharacterPath([new THREE.Vector3()])
             }	
 
