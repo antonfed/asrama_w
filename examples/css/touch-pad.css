@@ -29,6 +29,7 @@ body {
 	top: 0px;
 	left: 0px;
 	background: radial-gradient(rgba(215, 225, 255, 0.70) 0%, rgba(215, 225, 255, 0.50) 100%);
+
 	/*border: 1px solid rgba(145, 105, 245, 0.90);*/
 	border-radius: 50%;
 	box-shadow: 0px 0px 7px rgba(195, 205, 245, 0.9);
@@ -64,6 +65,7 @@ body {
 	top: 0px;
 	left: 0px;
 	background: url("../images/nav_02.png") center center no-repeat;
+	background-size: cover;
 	/*border: 1px solid rgba(145, 105, 245, 0.90);
 	border-radius: 50%;
 	box-shadow: 0px 0px 7px rgba(195, 205, 245, 0.9);
