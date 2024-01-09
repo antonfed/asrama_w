@@ -17,7 +17,7 @@
 
 			@font-face {
   			font-family: 'Aeroport';
-  			src: url('./source/Brownfox - Aeroport.ttf') format('truetype');
+  			src: url('./source/fonts/AEROPORT/Brownfox - Aeroport.otf') format('opentype');
 			}
 
       .ui {    		
@@ -1244,13 +1244,13 @@ function setupGraphics(){
 	botType01.add(gltf.scene);
 	progressLoad("bot_model01")					
 	} );
-	loader.load( 'optimized/characters/kgirl_fix1.glb', function ( gltf ) {
+	loader.load( 'optimized/characters/bboy_fix1.glb', function ( gltf ) {
 	botType02.rotation.y = 3.14;
 	gltf.scene.scale.set(0.1,0.1,0.1);
 	botType02.add(gltf.scene);
 	progressLoad("bot_model02")					
 	} );
-	loader.load( 'optimized/characters/kgirl2.glb', function ( gltf ) {	
+	loader.load( 'optimized/characters/kboy_fix1.glb', function ( gltf ) {	
 	botType03.rotation.y = 3.14;
 	gltf.scene.scale.set(0.1,0.1,0.1);
 	botType03.add(gltf.scene);
@@ -1748,7 +1748,7 @@ class ridingBot{
 	 
 	  this.bot.castShadow = true;
 	  this.bot.receiveShadow = true;
-	  this.botGeo = SkeletonUtils.clone(botType01);
+	  this.botGeo = SkeletonUtils.clone(botType02);
 
 	  playerScene.add(this.bot);
 	  playerScene.add(this.botGeo);
