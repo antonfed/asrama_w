@@ -2019,7 +2019,7 @@ function moveBall(){
 		    						var botOffset = new THREE.Vector3(Math.random(),0,Math.random())	;
 		    						botOffset.normalize();	
 		    						botOffset.multiplyScalar(300);
-		    						botOffset.add(new THREE.Vector3(0,90,0));
+		    						botOffset.add(new THREE.Vector3(0,20,0));
 		    						console.log(botOffset);
 
 		    						let pos = ballHolder.getWorldPosition(new THREE.Vector3()).add(botOffset);
