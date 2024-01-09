@@ -1230,29 +1230,29 @@ function setupGraphics(){
 
 	loader.load( 'hover.glb', function ( gltf ) {
 	//gltf.scene.position.y=-1;
-	gltf.scene.scale.set(12,12,12);
-	botType01.add(gltf.scene);
-	botType02.add(gltf.scene);
-	botType03.add(gltf.scene);
+	gltf.scene.scale.set(8,8,8);
+	botType01.add(gltf.scene.clone());
+	botType02.add(gltf.scene.clone());
+	botType03.add(gltf.scene.clone());
 	progressLoad("bot_hover")
 	})
 
 
 	loader.load( 'optimized/characters/bgirl_fix1.glb', function ( gltf ) {
-	botType01.rotation.y = 3.14;
-	gltf.scene.scale.set(0.1,0.1,0.1);
+	//botType01.rotation.y = 3.14;
+	gltf.scene.scale.set(0.12,0.12,0.12);
 	botType01.add(gltf.scene);
 	progressLoad("bot_model01")					
 	} );
 	loader.load( 'optimized/characters/bboy_fix1.glb', function ( gltf ) {
-	botType02.rotation.y = 3.14;
-	gltf.scene.scale.set(0.1,0.1,0.1);
+	//botType02.rotation.y = 3.14;
+	gltf.scene.scale.set(0.12,0.12,0.12);
 	botType02.add(gltf.scene);
 	progressLoad("bot_model02")					
 	} );
 	loader.load( 'optimized/characters/kboy_fix1.glb', function ( gltf ) {	
-	botType03.rotation.y = 3.14;
-	gltf.scene.scale.set(0.1,0.1,0.1);
+	//botType03.rotation.y = 3.14;
+	gltf.scene.scale.set(0.12,0.12,0.12);
 	botType03.add(gltf.scene);
 	progressLoad("bot_model03")					
 	} );
@@ -1748,7 +1748,10 @@ class ridingBot{
 	 
 	  this.bot.castShadow = true;
 	  this.bot.receiveShadow = true;
-	  this.botGeo = SkeletonUtils.clone(botType02);
+	  this.botGeo = new THREE.Object3D;
+	  const botInt = botList[Math.floor(Math.random() * botList.length)].clone();
+	  botInt.position.y=-8;
+	  this.botGeo.add(botInt);
 
 	  playerScene.add(this.bot);
 	  playerScene.add(this.botGeo);
